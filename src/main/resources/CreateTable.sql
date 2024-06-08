@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS services(
-id SERIAL PRIMARY KEY,
-name VARCHAR(250) NOT NULL,
-price REAL NOT NULL,
-time INT
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(250) NOT NULL,
+    price REAL NOT NULL,
+    time INT
 );
 
 CREATE TABLE IF NOT EXISTS accounts(
@@ -17,38 +17,39 @@ CREATE TABLE IF NOT EXISTS users(
     email VARCHAR(200) NOT NULL,
     role VARCHAR(200) NOT NULL ,
     discount REAL NOT NULL DEFAULT 0,
+    discount_for_user REAL NOT NULL DEFAULT 0,
     is_delete BOOLEAN NOT NULL DEFAULT false,
     user_abstract VARCHAR(100),
     FOREIGN KEY (id) REFERENCES accounts(id)
 );
 
 CREATE TABLE IF NOT EXISTS boxes(
-id SERIAL PRIMARY KEY,
-start TIME NOT NULL,
-finish TIME NOT NULL,
-usage_rate REAL NOT NULL,
-operator_id INT NOT NULL,
-FOREIGN KEY (operator_id) REFERENCES users(id)
+    id SERIAL PRIMARY KEY,
+    start TIME NOT NULL,
+    finish TIME NOT NULL,
+    usage_rate REAL NOT NULL,
+    operator_id INT NOT NULL,
+    FOREIGN KEY (operator_id) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS service_box(
-service_id INT NOT NULL,
-box_id INT NOT NULL,
-PRIMARY KEY (service_id, box_id),
-FOREIGN KEY (service_id) REFERENCES services(id),
-FOREIGN KEY (box_id) REFERENCES boxes(id)
+    service_id INT NOT NULL,
+    box_id INT NOT NULL,
+    PRIMARY KEY (service_id, box_id),
+    FOREIGN KEY (service_id) REFERENCES services(id),
+    FOREIGN KEY (box_id) REFERENCES boxes(id)
 );
 
 CREATE TABLE IF NOT EXISTS records(
-id SERIAL PRIMARY KEY ,
-user_id INT NOT NULL,
-start_date DATE NOT NULL,
-start_time TIME NOT NULL,
-finish_date DATE NOT NULL,
-finish_time TIME NOT NULL,
-is_reserve BOOLEAN NOT NULL DEFAULT true,
-is_complite BOOLEAN NOT NULL DEFAULT false,
-FOREIGN KEY(user_id) REFERENCES users(id)
+    id SERIAL PRIMARY KEY ,
+    user_id INT NOT NULL,
+    start_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    finish_date DATE NOT NULL,
+    finish_time TIME NOT NULL,
+    is_reserve BOOLEAN NOT NULL DEFAULT true,
+    is_complite BOOLEAN NOT NULL DEFAULT false,
+    FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS service_record

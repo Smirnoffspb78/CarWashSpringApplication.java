@@ -58,4 +58,4 @@ CREATE TABLE IF NOT EXISTS service_record
     PRIMARY KEY (record_id, service_id),
     FOREIGN KEY (service_id) REFERENCES records (id) ,
     FOREIGN KEY (record_id) REFERENCES services (id)
-)
+);

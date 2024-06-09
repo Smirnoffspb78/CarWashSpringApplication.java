@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS users(
     discount REAL NOT NULL DEFAULT 0,
     discount_for_user REAL NOT NULL DEFAULT 0,
     is_delete BOOLEAN NOT NULL DEFAULT false,
-    user_abstract VARCHAR(100),
     FOREIGN KEY (id) REFERENCES accounts(id)
 );
 

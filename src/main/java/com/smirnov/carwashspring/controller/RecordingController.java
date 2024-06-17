@@ -3,6 +3,7 @@ package com.smirnov.carwashspring.controller;
 import com.smirnov.carwashspring.dto.RangeForProfitDTO;
 import com.smirnov.carwashspring.service.RecordingService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -43,7 +44,7 @@ public class RecordingController {
      */
     @PutMapping("/complite/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void updateRecordComplite(@PathVariable(name = "id") int id) {
+    public void updateRecordComplite(@PathVariable(name = "id") @NotNull(message = "id is null") Integer id) {
         recordingService.updateCompliteById(id);
     }
 }

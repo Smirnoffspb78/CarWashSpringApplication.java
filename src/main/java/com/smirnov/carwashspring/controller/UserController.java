@@ -4,8 +4,10 @@ import com.smirnov.carwashspring.dto.UserCreateDTO;
 import com.smirnov.carwashspring.entity.User;
 import com.smirnov.carwashspring.service.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/users")
+@Validated
 public class UserController {
     /**
      * Сервисный слой пользователя.
@@ -43,7 +46,7 @@ public class UserController {
      */
     @PutMapping("/discount-for-user/{id}/{typeDiscount}/{discount}")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateDiscountForUser(@PathVariable(name = "id") int id,
+    public void updateDiscountForUser(@PathVariable(name = "id") @NotNull(message = "id is null") Integer id,
                                       @PathVariable(name = "discount") float discount,
                                       @PathVariable(name = "typeDiscount") String typeDiscount) {
         userService.updateDiscountForUser(id, discount, typeDiscount);
@@ -71,7 +74,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable(name = "id") int id) {
+    public void deleteUser(@PathVariable(name = "id") @NotNull(message = "id is null") Integer id) {
         userService.deleteUser(id);
     }
 }

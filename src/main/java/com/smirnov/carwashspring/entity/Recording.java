@@ -1,6 +1,5 @@
-package com.smirnov.carwashspring.entity.service;
+package com.smirnov.carwashspring.entity;
 
-import com.smirnov.carwashspring.entity.users.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -29,7 +28,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Table(name = "records")
-public class Record {
+public class Recording {
     /**
      * Идентификатор записи.
      */
@@ -72,7 +71,7 @@ public class Record {
      * Услуги предоставлены.
      */
     @Column(name = "is_complite", insertable = false)
-    private boolean isComplite = false;
+    private boolean complited = false;
 
     /**
      * Сотоимсоть услуг с учетом скидки
@@ -96,5 +95,5 @@ public class Record {
     @JoinTable(name = "service_record",
             joinColumns = @JoinColumn(name = "service_id"),
             inverseJoinColumns = @JoinColumn(name = "record_id"))
-    private Set<Service> services = new HashSet<>();
+    private Set<Work> services = new HashSet<>();
 }

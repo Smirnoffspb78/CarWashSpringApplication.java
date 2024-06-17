@@ -1,12 +1,16 @@
 package com.smirnov.carwashspring.controller;
 
-import com.smirnov.carwashspring.entity.service.Service;
-import com.smirnov.carwashspring.service.ServiceService;
+import com.smirnov.carwashspring.entity.Work;
+import com.smirnov.carwashspring.service.WorkService;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -16,11 +20,12 @@ import java.util.List;
  */
 @AllArgsConstructor
 @RestController()
-@RequestMapping("/service")
-public class ServiceController {
+@RequestMapping("/works")
+@Validated
+public class WorkController {
 
 
-    private final ServiceService serviceService;
+    private final WorkService workService;
 
     /**
      * Возврщает список всех услуг из БД в формате JSON.
@@ -29,8 +34,9 @@ public class ServiceController {
      * @return Список услуг
      */
     @GetMapping
-    public List<Service> getAllService() {
-        return serviceService.getAllServices();
+    @ResponseStatus(HttpStatus.OK)
+    public List<Work> getAllService() {
+        return workService.getAllServices();
     }
 
     /**
@@ -40,10 +46,8 @@ public class ServiceController {
      * @param service Услуга
      */
     @PostMapping
-    public void createService(@RequestBody Service service) {
-        if (service == null) {
-            throw new NullPointerException("service is null");
-        }
-        serviceService.save(service);
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createService(@RequestBody @NotNull(message = "service is null") Work service) {
+        workService.save(service);
     }
 }

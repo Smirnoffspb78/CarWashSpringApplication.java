@@ -1,25 +1,14 @@
 package com.smirnov.carwashspring.dto;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
 import java.time.LocalDateTime;
 
 /**
  * DTO объект для передаче диапиазона периода.
+ *
+ * @param start  Начало перода.
+ * @param finish Окончание перода.
  */
-@Getter
-@Setter
-public class RangeForProfitDTO {
-
-    /**
-     * Начало перода.
-     */
-    @NotNull
-    private LocalDateTime start;
-    /**
-     * Окончание перода.
-     */
-    @NotNull
-    private LocalDateTime finish;
+public record RangeForProfitDTO(@NotNull(message = "start не должен быть null") LocalDateTime start,
+                                @NotNull(message = "finish не должен быть null") LocalDateTime finish) {
 }

@@ -1,25 +1,13 @@
 /*Тестовые пользователи*/
-INSERT INTO users (name, email, role, discount, min_discount_for_user, max_discount_for_user, is_delete)
-VALUES ('ivan', 'ivan@mail.ru', 'USER', 0, 0, 0, false),
-       ('petr', 'petr@mail.ru', 'USER', 0, 0, 0, false),
-       ('alex', 'alex@mail.ru', 'USER', 0, 0, 0, false),
-       ('sidr', 'sidr@mail.ru', 'USER', 0, 0, 0, false),
-       ('dmitry', 'dmitry@mail.ru', 'OPERATOR', 0, 0, 0, false),
-       ('admin', 'admin@mail.ru', 'ADMIN', 0, 0, 0, false),
-       ('sergey', 'sergey@mail.ru', 'OPERATOR', 0, 0, 0, false);
-
-
-/*Тестовые аккуанты*/
-
-INSERT INTO accounts (id, login, password)
-VALUES (1, 'ivan', 'ivan'),
-       (2,'petr', 'petr'),
-       (3,'alex', 'alex'),
-       (4,'sidr', 'sidr'),
-       (5,'dmitry', 'dmitry'),
-       (6,'admin', 'admin'),
-       (7,'sergey', 'sergey')
-;
+INSERT INTO users (name, login, password, email, role, discount, min_discount_for_user, max_discount_for_user,
+                   is_delete)
+VALUES ('Ivan', 'ivan', 'ivan', 'ivan@mail.ru', 'USER', 0, 0, 0, false),
+       ('Petr', 'petr', 'petr', 'petr@mail.ru', 'USER', 0, 0, 0, false),
+       ('Alex', 'alex', 'alex', 'alex@mail.ru', 'USER', 0, 0, 0, false),
+       ('Sidr', 'sidr', 'sidr', 'sidr@mail.ru', 'USER', 0, 0, 0, false),
+       ('Dmitry', 'dmitry', 'dmitry', 'dmitry@mail.ru', 'OPERATOR', 0, 0, 0, false),
+       ('Admin', 'admin', 'admin', 'admin@mail.ru', 'ADMIN', 0, 0, 0, false),
+       ('Sergey', 'sergey', 'sergey', 'sergey@mail.ru', 'OPERATOR', 0, 0, 0, false);
 
 
 /*Тестовые боксы*/

@@ -1,24 +1,20 @@
 package com.smirnov.carwashspring.controller;
 
-import com.smirnov.carwashspring.dto.UserAndAccountDTO;
-import com.smirnov.carwashspring.entity.users.Account;
-import com.smirnov.carwashspring.entity.users.User;
+import com.smirnov.carwashspring.dto.UserCreateDTO;
+import com.smirnov.carwashspring.entity.User;
 import com.smirnov.carwashspring.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 
 /**
  * Контроллер для пользователя.
  */
-@RestController
-@RequestMapping("/user")
 @AllArgsConstructor
+@RestController
+@RequestMapping("/users")
 public class UserController {
     /**
      * Сервисный слой пользователя.
@@ -32,6 +28,7 @@ public class UserController {
      * @param id Идентификатор
      */
     @PutMapping("/user-before-operator/{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateUserBeforeOperator(@PathVariable(name = "id") int id) {
         userService.updateUserBeforeOperator(id);
     }
@@ -45,7 +42,10 @@ public class UserController {
      * @param typeDiscount тип скидки: max или min, иначе выбрасывается исключение
      */
     @PutMapping("/discount-for-user/{id}/{typeDiscount}/{discount}")
-    public void updateDiscountForUser(@PathVariable(name = "id") int id, @PathVariable(name = "discount") float discount, @PathVariable(name = "typeDiscount") String typeDiscount) {
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void updateDiscountForUser(@PathVariable(name = "id") int id,
+                                      @PathVariable(name = "discount") float discount,
+                                      @PathVariable(name = "typeDiscount") String typeDiscount) {
         userService.updateDiscountForUser(id, discount, typeDiscount);
     }
 
@@ -53,20 +53,25 @@ public class UserController {
      * Добавляет нового пользователя в систему.
      * Права доступа: Анонимный пользователь.
      *
-     * @param userAndAccountDTO параметры пользователя
+     * @param userCreateDTO параметры пользователя
      */
     @PostMapping
-    public void addUser(@RequestBody UserAndAccountDTO userAndAccountDTO) {
-        if (userAndAccountDTO == null) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void addUser(@RequestBody @Valid UserCreateDTO userCreateDTO) {
+        if (userCreateDTO == null) {
             throw new NullPointerException("UserAndAccountDTO is null");
         }
-        Account account = new Account();
-        account.setLogin(userAndAccountDTO.getLogin());
-        account.setPassword(userAndAccountDTO.getPassword());
         User user = new User();
-        user.setEmail(userAndAccountDTO.getEmail());
-        user.setName(userAndAccountDTO.getName());
-        account.setUser(user);
-        userService.createUser(account, user);
+        user.setEmail(userCreateDTO.email());
+        user.setName(userCreateDTO.name());
+        user.setLogin(userCreateDTO.login());
+        user.setPassword(userCreateDTO.password());
+        userService.createUser(user);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable(name = "id") int id) {
+        userService.deleteUser(id);
     }
 }

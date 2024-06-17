@@ -1,29 +1,27 @@
 package com.smirnov.carwashspring.service;
 
 
-import com.smirnov.carwashspring.entity.users.Account;
-import com.smirnov.carwashspring.entity.users.User;
-import com.smirnov.carwashspring.repository.AccountRepository;
+import com.smirnov.carwashspring.entity.User;
 import com.smirnov.carwashspring.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Сервисный слой пользователя.
  */
 @AllArgsConstructor
 @Service
+@Validated
 public class UserService {
 
     /**
      * Репозиторий пользователя.
      */
     private final UserRepository userRepository;
-    /**
-     * Репозиторий аккаунта
-     */
-    private final AccountRepository accountRepository;
 
     /**
      * Выдает права оператора пользователю.
@@ -36,7 +34,6 @@ public class UserService {
         User user = userRepository.findByIdAndRole(id, User.Role.USER)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь с таким id не найден или его права не USER"));
         user.setRole(User.Role.OPERATOR);
-        userRepository.save(user);
     }
 
     /**
@@ -48,10 +45,9 @@ public class UserService {
      * @param typeDiscount Тип скидки, принимает значения min или max.
      */
     @Transactional
-    public void updateDiscountForUser(int id, float discount, String typeDiscount) {
-        if (discount < 0 || discount > 100) {
-            throw new IllegalArgumentException("discount должен находиться в диапазоне от 0 до 100 включительно");
-        }
+    public void updateDiscountForUser(int id,
+                                      @Range(min = 0, max = 100, message = "discount должен находиться в диапазоне от 0 до 100 включительно") float discount,
+                                      @NotNull String typeDiscount) {
         User user = userRepository.findByIdAndRole(id, User.Role.OPERATOR).
                 orElseThrow(() -> new IllegalArgumentException("Оператор с таким id не найден или его права не OPERATOR"));
         switch (typeDiscount) {
@@ -69,17 +65,30 @@ public class UserService {
             }
             default -> throw new IllegalArgumentException("typeDiscount должен принимать значения min или max");
         }
-        userRepository.save(user);
     }
 
     /**
      * Добавляет в систему нового пользователя.
-     * @param account Аккаунт
+     *
      * @param user Пользователь
      */
     @Transactional
-    public void createUser(Account account, User user) {
+    public void createUser(@Validated User user) {
+        User userSave = userRepository.findByLoginAndDeletedIsFalse(user.getLogin()).orElse(null);
+        if (userSave != null) {
+            throw new IllegalArgumentException("login уже занят");
+        }
         userRepository.save(user);
-        accountRepository.save(account);
+    }
+
+    /**
+     * Удаляет юзера по идентификатору.
+     * @param id Идентификатор
+     */
+    @Transactional
+    public void deleteUser(int id) {
+        User user = userRepository.findByIdAndDeletedIsFalse(id)
+                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+        user.setDeleted(true);
     }
 }

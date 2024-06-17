@@ -1,14 +1,12 @@
 package com.smirnov.carwashspring.controller;
 
 import com.smirnov.carwashspring.dto.RangeForProfitDTO;
-import com.smirnov.carwashspring.service.RecordService;
+import com.smirnov.carwashspring.service.RecordingService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
@@ -17,13 +15,14 @@ import java.math.BigDecimal;
  */
 @AllArgsConstructor
 @RestController
-@RequestMapping("/record")
-public class RecordController {
+@RequestMapping("/recordings")
+@Validated
+public class RecordingController {
 
     /**
      * Сервисынй слой записи.
      */
-    RecordService recordService;
+    private final RecordingService recordingService;
 
     /**
      * Возвращает выручку за заданный промежуток времени.
@@ -32,11 +31,9 @@ public class RecordController {
      * @return Выручка за заданный промежуток времени
      */
     @GetMapping("/profit")
-    public BigDecimal getProfit(@RequestBody RangeForProfitDTO rangeForProfit) {
-        if (rangeForProfit == null) {
-            throw new NullPointerException("rangeForProfit is null");
-        }
-        return recordService.getProfit(rangeForProfit.getStart(), rangeForProfit.getFinish());
+    @ResponseStatus(HttpStatus.OK)
+    public BigDecimal getProfit(@RequestBody @Valid RangeForProfitDTO rangeForProfit) {
+        return recordingService.getProfit(rangeForProfit.start(), rangeForProfit.finish());
     }
 
     /**
@@ -45,7 +42,8 @@ public class RecordController {
      * @param id Идентификатор записи
      */
     @PutMapping("/complite/{id}")
-    public void updateRecordComplite(@PathVariable(name = "id") Integer id) {
-        recordService.updateCompliteById(id);
+    @ResponseStatus(HttpStatus.OK)
+    public void updateRecordComplite(@PathVariable(name = "id") int id) {
+        recordingService.updateCompliteById(id);
     }
 }

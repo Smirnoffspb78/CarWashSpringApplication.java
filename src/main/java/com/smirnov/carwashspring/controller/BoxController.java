@@ -1,11 +1,17 @@
 package com.smirnov.carwashspring.controller;
 
-import com.smirnov.carwashspring.entity.service.Box;
+import com.smirnov.carwashspring.dto.BoxCreateDto;
+import com.smirnov.carwashspring.entity.Box;
+import com.smirnov.carwashspring.entity.User;
 import com.smirnov.carwashspring.service.BoxService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -14,7 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @AllArgsConstructor
 @RestController
-@RequestMapping("/box")
+@RequestMapping("/boxes")
+@Validated
 public class BoxController {
 
     /**
@@ -26,13 +33,18 @@ public class BoxController {
      * Регестрирует новый Бокс.
      * Права доступа - ADMIN.
      *
-     * @param box Бокс
+     * @param boxCreateDto DTO Бокс
      */
     @PostMapping
-    public void addBox(@RequestBody Box box) {
-        if (box == null) {
-            throw new NullPointerException("box is null");
-        }
+    @ResponseStatus(HttpStatus.CREATED)
+    public void addBox(@RequestBody @Valid BoxCreateDto boxCreateDto) {
+        Box box =new Box();
+        box.setFinish(boxCreateDto.finish());
+        box.setStart(boxCreateDto.start());
+        box.setUsageRate(boxCreateDto.usageRate());
+        User user = new User();
+        user.setId(boxCreateDto.userId());
+        box.setUser(user);
         boxService.save(box);
     }
 }

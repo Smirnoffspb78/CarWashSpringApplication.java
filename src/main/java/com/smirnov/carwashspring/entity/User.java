@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.entity.users;
+package com.smirnov.carwashspring.entity;
 
 
 import jakarta.persistence.Column;
@@ -42,6 +42,22 @@ public class User {
     private Integer id;
 
     /**
+     * Логин.
+     */
+    @Pattern(regexp = "[A-z\\d][A-z\\d.]{3,199}",
+            message = "Логин должен содержать латинские буквы, цифры или символ \".\". Длина логины должна иметь хотябы три символ. Логин не может начинаться с \".\"")
+    @Column(name = "login", updatable = false)
+    private String login;
+
+    /**
+     * Пароль.
+     */
+    @Pattern(regexp = "[A-z\\d!#$*]{8,200}",
+            message = "password может содержать латинские буквы, цифры и символы !#$*. Длин должны быть от 8 до 200 символов")
+    @Column(name = "password")
+    private String password;
+
+    /**
      * Имя.
      */
     @Pattern(regexp = "[A-ZА-Я][A-zА-я-]{0,199}", message = "Имя должно начинаться с заглавной латинской или русской буквы. Имя может содержать символ \"-\"")
@@ -73,20 +89,20 @@ public class User {
      * Аккаунт удален.
      */
     @Column(name = "is_delete", insertable = false)
-    private boolean isDelete = false;
+    private boolean deleted = false;
 
     /**
      * Минимальная скидка, предоставляемая пользователям.
      */
 
-    @Range(min = 0, max = 100)
+    @Range(min = 0, max = 100, message = "minDiscountForUsers должен быть в диапазоне от 0 до 100 включительно")
     @Column(name = "min_discount_for_user", insertable = false)
     private float minDiscountForUsers = 0;
 
     /**
      * Максимальная скидка, предоставляемая пользователям.
      */
-    @Range(min = 0, max = 100)
+    @Range(min = 0, max = 100, message = "maxDiscountForUsers должен быть в диапазоне от 0 до 100 включительно")
     @Column(name = "max_discount_for_user", insertable = false)
     private float maxDiscountForUsers = 0;
 }

@@ -1,6 +1,7 @@
 package com.smirnov.carwashspring.service;
 
-import com.smirnov.carwashspring.repository.ServiceRepository;
+import com.smirnov.carwashspring.entity.Work;
+import com.smirnov.carwashspring.repository.WorkRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -10,17 +11,17 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class ServiceService {
+public class WorkService {
 
-    private final ServiceRepository serviceRepository;
+    private final WorkRepository workRepository;
 
     /**
      * Вовзращет весь список услуг.
      *
      * @return Спислк услуг
      */
-    public List<com.smirnov.carwashspring.entity.service.Service> getAllServices() {
-        return serviceRepository.findAll();
+    public List<Work> getAllServices() {
+        return workRepository.findAll();
     }
 
     /**
@@ -29,7 +30,7 @@ public class ServiceService {
      * @param service Услуга
      */
     @Transactional
-    public void save(@Valid com.smirnov.carwashspring.entity.service.Service service) {
-        serviceRepository.save(service);
+    public void save(@Valid Work service) {
+        workRepository.save(service);
     }
 }

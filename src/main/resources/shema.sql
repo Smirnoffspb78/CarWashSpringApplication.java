@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS services
 CREATE TABLE IF NOT EXISTS users
 (
     id                    SERIAL PRIMARY KEY,
+    login    VARCHAR(250) NOT NULL,
+    password VARCHAR(250) NOT NULL,
     name                  VARCHAR(200) NOT NULL,
     email                 VARCHAR(200) NOT NULL,
     role                  VARCHAR(200) NOT NULL,
@@ -19,13 +21,6 @@ CREATE TABLE IF NOT EXISTS users
     is_delete             BOOLEAN      NOT NULL DEFAULT false
 );
 
-CREATE TABLE IF NOT EXISTS accounts
-(
-    id       SERIAL PRIMARY KEY,
-    login    VARCHAR(250) NOT NULL UNIQUE,
-    password VARCHAR(250) NOT NULL,
-    FOREIGN KEY (id) REFERENCES users (id)
-);
 
 
 CREATE TABLE IF NOT EXISTS boxes

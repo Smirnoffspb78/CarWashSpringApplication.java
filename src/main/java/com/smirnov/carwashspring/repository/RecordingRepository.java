@@ -1,6 +1,6 @@
 package com.smirnov.carwashspring.repository;
 
-import com.smirnov.carwashspring.entity.service.Record;
+import com.smirnov.carwashspring.entity.Recording;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -13,7 +13,7 @@ import java.util.Optional;
  * Репозиторий записи.
  */
 @Repository
-public interface RecordRepository extends CrudRepository<Record, Integer> {
+public interface RecordingRepository extends CrudRepository<Recording, Integer> {
 
     /**
      * Подсчитывает выручку за заданный период времени.
@@ -30,7 +30,7 @@ public interface RecordRepository extends CrudRepository<Record, Integer> {
      * @return Запись
      */
 
-    Optional<Record> findByIdAndIsCompliteIsFalse(Integer id);
+    Optional<Recording> findByIdAndComplitedIsFalse(Integer id);
 
 
 }

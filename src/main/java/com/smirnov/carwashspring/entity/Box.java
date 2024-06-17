@@ -1,7 +1,5 @@
-package com.smirnov.carwashspring.entity.service;
+package com.smirnov.carwashspring.entity;
 
-
-import com.smirnov.carwashspring.entity.users.User;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

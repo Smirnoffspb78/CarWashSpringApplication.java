@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS records
     finish      TIMESTAMP NOT NULL,
     is_reserve  BOOLEAN   NOT NULL DEFAULT true,
     is_complite BOOLEAN   NOT NULL DEFAULT false,
-    cost        REAL      NOT NULL,
+    cost        NUMERIC      NOT NULL,
     box_id      INTEGER   NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (box_id) REFERENCES boxes (id)

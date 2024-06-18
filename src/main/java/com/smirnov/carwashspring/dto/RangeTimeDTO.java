@@ -9,6 +9,6 @@ import java.time.LocalDateTime;
  * @param start  Начало перода.
  * @param finish Окончание перода.
  */
-public record RangeForProfitDTO(@NotNull(message = "start не должен быть null") LocalDateTime start,
-                                @NotNull(message = "finish не должен быть null") LocalDateTime finish) {
+public record RangeTimeDTO(@NotNull(message = "start не должен быть null") LocalDateTime start,
+                           @NotNull(message = "finish не должен быть null") LocalDateTime finish) {
 }

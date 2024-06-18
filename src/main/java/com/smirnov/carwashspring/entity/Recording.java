@@ -14,9 +14,12 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,6 +31,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Table(name = "records")
+@ToString
 public class Recording {
     /**
      * Идентификатор записи.
@@ -65,7 +69,7 @@ public class Recording {
      * Дата и время забронированы.
      */
     @Column(name = "is_reserve", insertable = false)
-    private boolean isReserve = true;
+    private boolean reserved = true;
 
     /**
      * Услуги предоставлены.
@@ -77,7 +81,8 @@ public class Recording {
      * Сотоимсоть услуг с учетом скидки
      */
     @Column(name = "cost")
-    private double cost;
+    @Positive(message = "cost должен быть положительным")
+    private BigDecimal cost;
 
     /**
      * Бокс.

@@ -1,6 +1,6 @@
 package com.smirnov.carwashspring.controller;
 
-import com.smirnov.carwashspring.dto.BoxCreateDto;
+import com.smirnov.carwashspring.dto.BoxCreateDTO;
 import com.smirnov.carwashspring.entity.Box;
 import com.smirnov.carwashspring.entity.User;
 import com.smirnov.carwashspring.service.BoxService;
@@ -37,7 +37,7 @@ public class BoxController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void addBox(@RequestBody @Valid BoxCreateDto boxCreateDto) {
+    public void addBox(@RequestBody @Valid BoxCreateDTO boxCreateDto) {
         Box box =new Box();
         box.setFinish(boxCreateDto.finish());
         box.setStart(boxCreateDto.start());

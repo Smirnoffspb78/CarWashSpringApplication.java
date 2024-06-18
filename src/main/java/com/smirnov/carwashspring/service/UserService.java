@@ -83,6 +83,7 @@ public class UserService {
 
     /**
      * Удаляет юзера по идентификатору.
+     *
      * @param id Идентификатор
      */
     @Transactional
@@ -90,5 +91,23 @@ public class UserService {
         User user = userRepository.findByIdAndDeletedIsFalse(id)
                 .orElseThrow(() -> new IllegalArgumentException("user not found"));
         user.setDeleted(true);
+    }
+
+    /**
+     * Назначает скидку пользователю по идентификатору
+     *
+     * @param discount          Размер скидки, [%]
+     * @param idOperatorOrAdmin Идентификатор оператора или админа
+     * @param idUser            Идентификатор пользователя
+     */
+    @Transactional
+    public void updateDiscount(float discount, Integer idOperatorOrAdmin, Integer idUser) {
+        User user = userRepository.findById(idUser)
+                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+        User operatorOrAdmin = userRepository.findByIdAndRoleIsOperatorOrRoleIsAdmin(idOperatorOrAdmin).orElseThrow(() -> new IllegalArgumentException("operator or admin not found"));
+        if (discount > operatorOrAdmin.getMaxDiscountForUsers() || discount < operatorOrAdmin.getMinDiscountForUsers()) {
+            throw new IllegalArgumentException("discount должен быть в диапазоне от MinDiscount до MaxDiscount");
+        }
+        user.setDiscount(discount);
     }
 }

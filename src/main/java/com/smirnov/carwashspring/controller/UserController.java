@@ -5,6 +5,7 @@ import com.smirnov.carwashspring.entity.User;
 import com.smirnov.carwashspring.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -50,6 +51,12 @@ public class UserController {
                                       @PathVariable(name = "discount") float discount,
                                       @PathVariable(name = "typeDiscount") String typeDiscount) {
         userService.updateDiscountForUser(id, discount, typeDiscount);
+    }
+    @PutMapping("/discount/{discount}/{idOperatorOrAdmin}/{idUser}")
+    public void updateDiscountUser(@PathVariable(name = "discount") @Positive(message = "discount должен быть положительным") float discount,
+                                   @PathVariable(name = "idUser") @NotNull(message = "id is null") Integer idUser,
+                                   @PathVariable(name = "idOperatorOrAdmin") @NotNull(message = "id is null") Integer idOperatorOrAdmin) {
+        userService.updateDiscount(discount, idOperatorOrAdmin, idUser);
     }
 
     /**

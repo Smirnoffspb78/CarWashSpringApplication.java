@@ -83,7 +83,7 @@ public class User {
      */
     @Range(min = 0, max = 100, message = "discount должен быть в диапазаоне от 0 до 100")
     @Column(name = "discount", insertable = false)
-    private float discount = 0;
+    private int discount = 0;
 
     /**
      * Аккаунт удален.
@@ -97,12 +97,12 @@ public class User {
 
     @Range(min = 0, max = 100, message = "minDiscountForUsers должен быть в диапазоне от 0 до 100 включительно")
     @Column(name = "min_discount_for_user", insertable = false)
-    private float minDiscountForUsers = 0;
+    private int minDiscountForUsers = 0;
 
     /**
      * Максимальная скидка, предоставляемая пользователям.
      */
     @Range(min = 0, max = 100, message = "maxDiscountForUsers должен быть в диапазоне от 0 до 100 включительно")
     @Column(name = "max_discount_for_user", insertable = false)
-    private float maxDiscountForUsers = 0;
+    private int maxDiscountForUsers = 0;
 }

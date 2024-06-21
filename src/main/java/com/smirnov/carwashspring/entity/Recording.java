@@ -11,13 +11,8 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -52,7 +47,7 @@ public class Recording {
      * Дата начала предоставления услуг.
      */
     @NotNull(message = "startDate не должна быть null")
-    @FutureOrPresent(message = "start_date должна быть в будущем или настоящем")
+    @Future(message = "start_date должна быть в будущем")
     @Column(name = "start")
     private LocalDateTime start;
 
@@ -61,7 +56,7 @@ public class Recording {
      * Дата окончания предоставления услуг.
      */
     @NotNull(message = "finish_date не должна быть null")
-    @FutureOrPresent(message = "finish_date должна быть в будущем или настоящем")
+    @Future(message = "finish_date должна быть в будущем")
     @Column(name = "finish")
     private LocalDateTime finish;
 
@@ -101,4 +96,6 @@ public class Recording {
             joinColumns = @JoinColumn(name = "service_id"),
             inverseJoinColumns = @JoinColumn(name = "record_id"))
     private Set<Work> services = new HashSet<>();
+
+
 }

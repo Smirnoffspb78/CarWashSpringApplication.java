@@ -2,10 +2,9 @@ package com.smirnov.carwashspring.controller;
 
 import com.smirnov.carwashspring.entity.Work;
 import com.smirnov.carwashspring.service.WorkService;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,13 +17,15 @@ import java.util.List;
 /**
  * Контроллер для услуг.
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RestController()
 @RequestMapping("/works")
-@Validated
 public class WorkController {
 
 
+    /**
+     * Сервисный слой услуг.
+     */
     private final WorkService workService;
 
     /**
@@ -34,7 +35,6 @@ public class WorkController {
      * @return Список услуг
      */
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public List<Work> getAllService() {
         return workService.getAllServices();
     }
@@ -47,7 +47,7 @@ public class WorkController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createService(@RequestBody @NotNull(message = "service is null") Work service) {
+    public void createService(@RequestBody @Valid Work service) {
         workService.save(service);
     }
 }

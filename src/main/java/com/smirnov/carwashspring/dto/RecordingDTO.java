@@ -3,71 +3,30 @@ package com.smirnov.carwashspring.dto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
 
-@Getter
-@Setter
+/**
+ * @param id         Идентификатор записи.
+ * @param idUser     Пользователь.
+ * @param start      Дата начала предоставления услуг.
+ * @param finish     Дата окончания предоставления услуг.
+ * @param reserved   Дата и время забронированы.
+ * @param complited  Услуги предоставлены.
+ * @param cost       Сотоимсоть услуг с учетом скидки
+ * @param idBox      Бокс.
+ * @param idServices Список выбранных услуг.
+ */
+
 @Builder
-public class RecordingDTO {
+public record RecordingDTO(@Positive(message = "id<0") @NotNull(message = "id is null") Integer id,
+                           @NotNull(message = "Пользователь не должен быть null") @Positive(message = "IdUser<0") Integer idUser,
+                           @NotNull(message = "startDate не должна быть null") LocalDateTime start,
+                           @NotNull(message = "finish_date не должна быть null") LocalDateTime finish, boolean reserved,
+                           boolean complited, @Positive(message = "cost должен быть положительным") BigDecimal cost,
+                           @NotNull(message = "IdBox не должен быть null") @Positive(message = "IdBox должен быть положительным") Integer idBox,
+                           Set<Integer> idServices) {
 
-    /**
-     * Идентификатор записи.
-     */
-    @Positive(message = "id<0")
-    @NotNull(message = "id is null")
-    private Integer id;
-
-    /**
-     * Пользователь.
-     */
-    @NotNull(message = "Пользователь не должен быть null")
-    @Positive(message = "IdUser<0")
-    private Integer idUser;
-
-    /**
-     * Дата начала предоставления услуг.
-     */
-    @NotNull(message = "startDate не должна быть null")
-    private LocalDateTime start;
-
-
-    /**
-     * Дата окончания предоставления услуг.
-     */
-    @NotNull(message = "finish_date не должна быть null")
-    private LocalDateTime finish;
-
-    /**
-     * Дата и время забронированы.
-     */
-    private boolean reserved;
-
-    /**
-     * Услуги предоставлены.
-     */
-    private boolean complited;
-
-    /**
-     * Сотоимсоть услуг с учетом скидки
-     */
-    @Positive(message = "cost должен быть положительным")
-    private BigDecimal cost;
-
-    /**
-     * Бокс.
-     */
-    @NotNull(message = "IdBox не должен быть null")
-    @Positive(message = "IdBox должен быть положительным")
-    private Integer idBox;
-
-    /**
-     * Список выбранных услуг.
-     */
-    private Set<Integer> idServices = new HashSet<>();
 }

@@ -15,9 +15,9 @@ CREATE TABLE IF NOT EXISTS users
     name                  VARCHAR(200) NOT NULL,
     email                 VARCHAR(200) NOT NULL,
     role                  VARCHAR(200) NOT NULL,
-    discount              REAL         NOT NULL DEFAULT 0,
-    min_discount_for_user REAL         NOT NULL DEFAULT 0,
-    max_discount_for_user REAL         NOT NULL DEFAULT 0,
+    discount              INT         NOT NULL DEFAULT 0,
+    min_discount_for_user INT         NOT NULL DEFAULT 0,
+    max_discount_for_user INT         NOT NULL DEFAULT 0,
     is_delete             BOOLEAN      NOT NULL DEFAULT false
 );
 

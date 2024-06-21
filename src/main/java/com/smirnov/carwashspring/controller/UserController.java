@@ -1,12 +1,10 @@
 package com.smirnov.carwashspring.controller;
 
 import com.smirnov.carwashspring.dto.UserCreateDTO;
-import com.smirnov.carwashspring.entity.User;
 import com.smirnov.carwashspring.service.UserService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * Контроллер для пользователя.
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/users")
 @Validated
@@ -33,7 +31,7 @@ public class UserController {
      */
     @PutMapping("/user-before-operator/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateUserBeforeOperator(@PathVariable(name = "id") int id) {
+    public void updateUserBeforeOperator(@PathVariable(name = "id") Integer id) {
         userService.updateUserBeforeOperator(id);
     }
 
@@ -41,22 +39,42 @@ public class UserController {
      * Изменяет скидку, предоставляему опреатором пользователю.
      * Права доступа: ADMIN.
      *
-     * @param id           Идентификатор
+     * @param id           Идентификатор оператора
      * @param discount     Скидка
      * @param typeDiscount тип скидки: max или min, иначе выбрасывается исключение
      */
-    @PutMapping("/discount-for-user/{id}/{typeDiscount}/{discount}")
+    @PutMapping("{id}/{discount-for-user}/{typeDiscount}")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateDiscountForUser(@PathVariable(name = "id") @NotNull(message = "id is null") Integer id,
-                                      @PathVariable(name = "discount") float discount,
+    public void updateDiscountForUser(@PathVariable(name = "id") Integer id,
+                                      @PathVariable(name = "discount-for-user") int discount,
                                       @PathVariable(name = "typeDiscount") String typeDiscount) {
         userService.updateDiscountForUser(id, discount, typeDiscount);
     }
+
+    /**
+     * Назначает скидку пользователю.
+     * Права доступа: ADMIN, OPERATOR.
+     * @param discount скидка
+     * @param idUser идентификатор пользователя
+     * @param idOperatorOrAdmin Идентификатор Админа или Оператора.
+     */
     @PutMapping("/discount/{discount}/{idOperatorOrAdmin}/{idUser}")
-    public void updateDiscountUser(@PathVariable(name = "discount") @Positive(message = "discount должен быть положительным") float discount,
-                                   @PathVariable(name = "idUser") @NotNull(message = "id is null") Integer idUser,
-                                   @PathVariable(name = "idOperatorOrAdmin") @NotNull(message = "id is null") Integer idOperatorOrAdmin) {
-        userService.updateDiscount(discount, idOperatorOrAdmin, idUser);
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void activateDiscountUser(@PathVariable(name = "discount") @Positive(message = "discount должен быть положительным") int discount,
+                                     @PathVariable(name = "idUser") Integer idUser,
+                                     @PathVariable(name = "idOperatorOrAdmin") Integer idOperatorOrAdmin) {
+        userService.activateDiscount(discount, idOperatorOrAdmin, idUser);
+    }
+
+    /**
+     * Удаляет скидку пользователя по его идентификатору.
+     * Уровень доступа: ADMIN, OPERATOR
+     * @param id Идентификатор пользователя
+     */
+    @PutMapping("deactivate-discount/{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void deactivateDiscountUser(@PathVariable(name = "id") Integer id) {
+        userService.deactivateDiscount(id);
     }
 
     /**
@@ -68,20 +86,17 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void addUser(@RequestBody @Valid UserCreateDTO userCreateDTO) {
-        if (userCreateDTO == null) {
-            throw new NullPointerException("UserAndAccountDTO is null");
-        }
-        User user = new User();
-        user.setEmail(userCreateDTO.email());
-        user.setName(userCreateDTO.name());
-        user.setLogin(userCreateDTO.login());
-        user.setPassword(userCreateDTO.password());
-        userService.createUser(user);
+        userService.createUser(userCreateDTO);
     }
 
+    /**
+     * Удаляет пользователя из базы.
+     * Уровень доступа: USER с удаляемым id.
+     * @param id Идентификатор пользователя
+     */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable(name = "id") @NotNull(message = "id is null") Integer id) {
+    public void deleteUser(@PathVariable(name = "id") Integer id) {
         userService.deleteUser(id);
     }
 }

@@ -1,6 +1,8 @@
 package com.smirnov.carwashspring.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * DTO для передачи данных пользователя.
@@ -10,8 +12,15 @@ import jakarta.validation.constraints.NotNull;
  * @param name     Имя.
  * @param email    E-mail.
  */
-public record UserCreateDTO(@NotNull(message = "login is null") String login,
-                            @NotNull(message = "password is null") String password,
-                            @NotNull(message = "name is null") String name,
-                            @NotNull(message = "email is null") String email) {
+public record UserCreateDTO(
+        @Pattern(regexp = "[A-z\\d][A-z\\d.]{3,199}",
+                message = "Логин должен содержать латинские буквы, цифры или символ \".\". Длина логины должна иметь хотябы три символ. Логин не может начинаться с \".\"")
+        String login,
+        @Pattern(regexp = "[A-z\\d!#$*]{8,200}",
+                message = "password может содержать латинские буквы, цифры и символы !#$*. Длин должны быть от 8 до 200 символов")
+        String password,
+        @Pattern(regexp = "[A-ZА-Я][A-zА-я-]{0,199}", message = "Имя должно начинаться с заглавной латинской или русской буквы. Имя может содержать символ \"-\"")
+        String name,
+        @NotBlank(message = "email не должен быть пустым и иметь хотя бы один непробельный символ")
+        String email) {
 }

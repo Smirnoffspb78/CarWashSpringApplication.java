@@ -1,11 +1,11 @@
 package com.smirnov.carwashspring.controller;
 
-import com.smirnov.carwashspring.dto.RangeTimeDTO;
+import com.smirnov.carwashspring.dto.RangeDataTimeDTO;
+import com.smirnov.carwashspring.dto.RecordingCreateDTO;
 import com.smirnov.carwashspring.dto.RecordingDTO;
 import com.smirnov.carwashspring.service.RecordingService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Контроллер для записи.
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/recordings")
 @Validated
@@ -31,14 +31,13 @@ public class RecordingController {
      * Возвращает выручку за заданный промежуток времени.
      * Права доступа: ADMIN.
      *
-     * @param rangeTimeDTO DTO объект для передаче диапиазона периода.
+     * @param rangeDataTimeDTO DTO объект для передаче диапиазона периода.
      * @return Выручка за заданный промежуток времени
      */
     @GetMapping("/profit")
-    @ResponseStatus(HttpStatus.OK)
-    public BigDecimal getProfit(@RequestBody @Valid RangeTimeDTO rangeTimeDTO) {
-        checkRangeRecording(rangeTimeDTO);
-        return recordingService.getProfit(rangeTimeDTO.start(), rangeTimeDTO.finish());
+    public BigDecimal getProfit(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO) {
+        checkRangeRecording(rangeDataTimeDTO);
+        return recordingService.getProfit(rangeDataTimeDTO);
     }
 
     /**
@@ -48,11 +47,21 @@ public class RecordingController {
      * @param id Идентификатор записи
      */
     @PutMapping("/complite/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public void updateRecordComplite(@PathVariable(name = "id") @NotNull(message = "id is null") Integer id) {
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void updateRecordComplite(@PathVariable(name = "id") Integer id) {
         recordingService.updateCompliteById(id);
     }
 
+    /**
+     * Снимает бронь с записи (делает ее отмененной) по идентификатору.
+     * Права доступа: ADMIN и USER с id записи.
+     * @param id Идентификатор записи
+     */
+    @PutMapping("cancellation/{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void cancellationRecordingById(@PathVariable("id") Integer id) {
+        recordingService.cancellationReserveById(id);
+    }
     /**
      * Возвращает список записей бокса по идентефикатору.
      * Права доступа: ADMIN, OPERATOR.
@@ -61,46 +70,57 @@ public class RecordingController {
      * @return список записей бокса
      */
     @GetMapping("/by-box/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public List<RecordingDTO> getAllRecordingsByIdBox(@PathVariable("id") @NotNull(message = "idBox is null") Integer idBox) {
+    public List<RecordingDTO> getAllRecordingsByIdBox(@PathVariable("id") Integer idBox) {
         return recordingService.getAllRecordingsByIdBox(idBox);
     }
 
     /**
-     * Возвращает список записей бокса за диапазон даты, времени..
+     * Возвращает список записей бокса за диапазон даты, времени.
      * Права доступа: ADMIN, OPERATOR.
      *
-     * @param rangeTimeDTO диапазон даты, времени
+     * @param rangeDataTimeDTO диапазон даты, времени
      * @return список записей за диапазон даты, времени.
      */
     @GetMapping("/by-range-date-time")
-    public List<RecordingDTO> getAllRecordingsByDateTimeRange(@RequestBody @Valid RangeTimeDTO rangeTimeDTO) {
-        checkRangeRecording(rangeTimeDTO);
-        return recordingService.getAllRecordingsByRange(rangeTimeDTO);
+    public List<RecordingDTO> getAllRecordingsByDateTimeRange(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO) {
+        checkRangeRecording(rangeDataTimeDTO);
+        return recordingService.getAllRecordingsByRange(rangeDataTimeDTO);
     }
 
     /**
      * Возвращает список записей бокса за диапазон даты, времени по идентификатору бокса.
      * Права доступа: ADMIN, OPERATOR.
      *
-     * @param rangeTimeDTO Диапазон даты, времени
+     * @param rangeDataTimeDTO Диапазон даты, времени
      * @param boxId        - Идентификатор бокса
      * @return Список записей за диапазон даты, времени.
      */
     @GetMapping("/by-range-date-time/{boxId}")
-    public List<RecordingDTO> getAllRecordingsByDateTimeRangeAndBoxId(@RequestBody @Valid RangeTimeDTO rangeTimeDTO,
-                                                                      @PathVariable("boxId") @NotNull(message = "boxId is null") Integer boxId) {
-        checkRangeRecording(rangeTimeDTO);
-        return recordingService.getAllRecordingsByRangeAndIdBox(rangeTimeDTO, boxId);
+    public List<RecordingDTO> getAllRecordingsByDateTimeRangeAndBoxId(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO,
+                                                                      @PathVariable("boxId") Integer boxId) {
+        checkRangeRecording(rangeDataTimeDTO);
+        return recordingService.getAllRecordingsByRangeAndIdBox(rangeDataTimeDTO, boxId);
     }
 
     /**
+     * Создает запись.
+     * Права доступа: USER, ADMIN, OPERATOR
+     * @param recordingDTO DTO для создания записи
+     * @return true/false, если запись создана/не создана
+     */
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public boolean createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO){
+        recordingService.createRecordingByIdUser(recordingDTO);
+        return true;
+    }
+    /**
      * Вспомогательный метод проверяет корректность введенных даты и времени.
      *
-     * @param rangeTimeDTO диапазон даты и времени
+     * @param rangeDataTimeDTO диапазон даты и времени
      */
-    private void checkRangeRecording(RangeTimeDTO rangeTimeDTO) {
-        if (rangeTimeDTO.start().isAfter(rangeTimeDTO.finish())) {
+    private void checkRangeRecording(RangeDataTimeDTO rangeDataTimeDTO) {
+        if (rangeDataTimeDTO.start().isAfter(rangeDataTimeDTO.finish())) {
             throw new IllegalArgumentException("startDate cannot be after finishDate");
         }
     }

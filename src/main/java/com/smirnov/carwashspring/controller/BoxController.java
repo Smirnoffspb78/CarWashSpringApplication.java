@@ -5,7 +5,8 @@ import com.smirnov.carwashspring.entity.Box;
 import com.smirnov.carwashspring.entity.User;
 import com.smirnov.carwashspring.service.BoxService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import jakarta.validation.ValidationException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Контроллер для бокса.
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/boxes")
 @Validated
@@ -36,15 +37,11 @@ public class BoxController {
      * @param boxCreateDto DTO Бокс
      */
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.CREATED) //todo перенсти в сервис
     public void addBox(@RequestBody @Valid BoxCreateDTO boxCreateDto) {
-        Box box =new Box();
-        box.setFinish(boxCreateDto.finish());
-        box.setStart(boxCreateDto.start());
-        box.setUsageRate(boxCreateDto.usageRate());
-        User user = new User();
-        user.setId(boxCreateDto.userId());
-        box.setUser(user);
-        boxService.save(box);
+        if (boxCreateDto.start().isAfter(boxCreateDto.finish())) {
+            throw new ValidationException("start не должен быть позднее finish");
+        }
+        boxService.save(boxCreateDto);
     }
 }

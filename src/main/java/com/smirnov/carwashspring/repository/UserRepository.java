@@ -1,6 +1,7 @@
 package com.smirnov.carwashspring.repository;
 
-import com.smirnov.carwashspring.entity.User;
+import com.smirnov.carwashspring.entity.users.Role;
+import com.smirnov.carwashspring.entity.users.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -19,9 +20,9 @@ public interface UserRepository extends CrudRepository<User, Integer> {
      * @param role Права доступа
      * @return Пользователь
      */
-    Optional<User> findByIdAndRole(Integer id, User.Role role);
+    Optional<User> findByIdAndRole(Integer id, Role role);
 
-    @Query(nativeQuery = true, value = "SELECT * FROM users WHERE id=:id AND (role='ADMIN' OR role='OPERATOR') ")
+    @Query(nativeQuery = true, value = "SELECT * FROM users WHERE id=:id AND (role_name='ADMIN' OR role_name='OPERATOR') ")
     Optional<User> findByIdAndRoleIsOperatorOrRoleIsAdmin(Integer id);
     /**
      * Возвращает пользователя по логину, если он не удален.
@@ -43,6 +44,7 @@ public interface UserRepository extends CrudRepository<User, Integer> {
      * @param role Права доступа
      * @return true/false,если пользователь нашелся/не нашелся
      */
-    boolean existsByIdAndRole(Integer id, User.Role role);
+
+    boolean existsByIdAndRole(Integer id, Role role);
 
 }

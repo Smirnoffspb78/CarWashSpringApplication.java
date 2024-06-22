@@ -1,9 +1,10 @@
 package com.smirnov.carwashspring.controller;
 
-import com.smirnov.carwashspring.entity.Work;
+import com.smirnov.carwashspring.entity.service.CarWashService;
 import com.smirnov.carwashspring.service.WorkService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,8 +20,9 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @RestController()
-@RequestMapping("/works")
-public class WorkController {
+@RequestMapping("/services")
+@Slf4j
+public class CarWashServiceController {
 
 
     /**
@@ -35,7 +37,8 @@ public class WorkController {
      * @return Список услуг
      */
     @GetMapping
-    public List<Work> getAllService() {
+    public List<CarWashService> getAllService() {
+        log.info("GET /services");
         return workService.getAllServices();
     }
 
@@ -47,7 +50,7 @@ public class WorkController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createService(@RequestBody @Valid Work service) {
+    public void createService(@RequestBody @Valid CarWashService service) {
         workService.save(service);
     }
 }

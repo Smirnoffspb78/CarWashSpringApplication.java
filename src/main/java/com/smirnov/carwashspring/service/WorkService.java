@@ -1,28 +1,40 @@
 package com.smirnov.carwashspring.service;
 
-import com.smirnov.carwashspring.entity.Work;
-import com.smirnov.carwashspring.repository.WorkRepository;
+import com.smirnov.carwashspring.entity.service.CarWashService;
+import com.smirnov.carwashspring.repository.CarWashServiceRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Сервисный слой услуг.
+ */
 @RequiredArgsConstructor
 @Service
+@Transactional
+@Slf4j
 public class WorkService {
 
-    private final WorkRepository workRepository;
+    /**
+     * Репозиторий услуг.
+     */
+    private final CarWashServiceRepository carWashServiceRepository;
 
     /**
      * Вовзращет весь список услуг.
      *
      * @return Спислк услуг
      */
-    @Transactional
-    public List<Work> getAllServices() {
-        return workRepository.findAll();
+
+    public List<CarWashService> getAllServices() {
+        log.info("getAllServices");
+        return carWashServiceRepository.findAll();
     }
 
     /**
@@ -30,8 +42,7 @@ public class WorkService {
      *
      * @param service Услуга
      */
-    @Transactional
-    public void save(@Valid Work service) {
-        workRepository.save(service);
+    public void save(@Valid CarWashService service) {
+        carWashServiceRepository.save(service);
     }
 }

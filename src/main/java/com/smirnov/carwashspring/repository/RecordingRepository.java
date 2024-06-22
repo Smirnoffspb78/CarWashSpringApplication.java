@@ -1,6 +1,6 @@
 package com.smirnov.carwashspring.repository;
 
-import com.smirnov.carwashspring.entity.Recording;
+import com.smirnov.carwashspring.entity.service.Recording;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -68,7 +68,7 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
 
 
     /**
-     * Вовзращает спсиок неотмененных невывыполненныхзаказов пользователя за заданный диапазон времени
+     * Вовзращает спсиок неотмененных невывыполненных заказов пользователя за заданный диапазон времени
      * @param userId Пользователь
      * @param start началод диапазона
      * @param finish конец диапазона
@@ -76,4 +76,14 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
      */
     @Query(nativeQuery = true, value = "SELECT * FROM records WHERE user_id = :userId AND ((start>=:start AND start<=:finish) OR (finish>=:start AND finish<=:finish))")
     List<Recording> findAllByUserAndStartAndFinishAndReservedIsTrueAndComplitedIsFalse(Integer userId, LocalDateTime start, LocalDateTime finish);
+    /*List<Recording> findAllByUser_IdAndReservedIsTrueAndComplitedIsFalseAndAndStartBetweenOrFinishBetween
+            (Integer userId, LocalDateTime start, LocalDateTime finish);*/
+
+    /**
+     * Выводит список активных броней по идентификатору пользователя
+     * @param userId Идентификатор пользователя
+     */
+    List<Recording> findAllByUser_IdAndReservedIsTrue(Integer userId);
+
+
 }

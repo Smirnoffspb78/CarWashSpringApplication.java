@@ -1,14 +1,7 @@
-package com.smirnov.carwashspring.entity;
+package com.smirnov.carwashspring.entity.users;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
@@ -25,14 +18,6 @@ import org.hibernate.validator.constraints.Range;
 @Setter
 @ToString
 public class User {
-
-
-    /**
-     * Уровни доступа.
-     */
-    public enum Role {
-        USER, ADMIN, OPERATOR
-    }
 
     /**
      * Идентификатор пользователя.
@@ -74,9 +59,10 @@ public class User {
     /**
      * Роль.
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role")
-    private Role role = Role.USER;
+
+    @JoinColumn(name = "role_name")
+    @OneToOne
+    private Role role;
 
     /**
      * Персональная скидка, [%].
@@ -86,23 +72,25 @@ public class User {
     private int discount = 0;
 
     /**
+     * Максимальная скидка, предоставляемая опреатором.
+     */
+    @Column(name = "min_discount_for_user", insertable = false)
+    @Range(min = 0, max = 100, message = "minDiscountForUsers должен быть в диапазаоне от 0 до 100")
+    private int minDiscountForUsers;
+
+    /**
+     * Максимальная скидка, предоставляемая опреатором.
+     */
+    @Column(name = "max_discount_for_user", insertable = false)
+    @Range(min = 0, max = 100, message = "maxDiscountForUsers должен быть в диапазаоне от 0 до 100")
+    private int maxDiscountForUsers;
+
+
+    /**
      * Аккаунт удален.
      */
     @Column(name = "is_delete", insertable = false)
     private boolean deleted = false;
 
-    /**
-     * Минимальная скидка, предоставляемая пользователям.
-     */
 
-    @Range(min = 0, max = 100, message = "minDiscountForUsers должен быть в диапазоне от 0 до 100 включительно")
-    @Column(name = "min_discount_for_user", insertable = false)
-    private int minDiscountForUsers = 0;
-
-    /**
-     * Максимальная скидка, предоставляемая пользователям.
-     */
-    @Range(min = 0, max = 100, message = "maxDiscountForUsers должен быть в диапазоне от 0 до 100 включительно")
-    @Column(name = "max_discount_for_user", insertable = false)
-    private int maxDiscountForUsers = 0;
 }

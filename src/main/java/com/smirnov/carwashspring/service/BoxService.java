@@ -1,12 +1,12 @@
 package com.smirnov.carwashspring.service;
 
 import com.smirnov.carwashspring.dto.BoxCreateDTO;
-import com.smirnov.carwashspring.entity.Box;
-import com.smirnov.carwashspring.entity.User;
+import com.smirnov.carwashspring.entity.service.Box;
+import com.smirnov.carwashspring.entity.users.Role;
+import com.smirnov.carwashspring.entity.users.RolesUser;
+import com.smirnov.carwashspring.entity.users.User;
 import com.smirnov.carwashspring.repository.BoxRepository;
 import com.smirnov.carwashspring.repository.UserRepository;
-import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +34,9 @@ public class BoxService {
      * @param boxCreateDto Создаваемый бокс
      */
     public void save(BoxCreateDTO boxCreateDto) {
-        if (!userRepository.existsByIdAndRole(boxCreateDto.userId(), User.Role.OPERATOR)) {
+        Role role = new Role();
+        role.setRolesUser(RolesUser.ADMIN);
+        if (!userRepository.existsByIdAndRole(boxCreateDto.userId(), role)) {
             throw new IllegalArgumentException("Оператора с id %d не существует".formatted(boxCreateDto.userId()));
         }
         Box box = new Box();
@@ -46,6 +48,4 @@ public class BoxService {
         box.setUser(user);
         boxRepository.save(box);
     }
-
-
 }

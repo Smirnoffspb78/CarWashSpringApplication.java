@@ -1,8 +1,6 @@
 package com.smirnov.carwashspring.controller;
 
 import com.smirnov.carwashspring.dto.BoxCreateDTO;
-import com.smirnov.carwashspring.entity.Box;
-import com.smirnov.carwashspring.entity.User;
 import com.smirnov.carwashspring.service.BoxService;
 import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
@@ -37,7 +35,7 @@ public class BoxController {
      * @param boxCreateDto DTO Бокс
      */
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED) //todo перенсти в сервис
+    @ResponseStatus(HttpStatus.CREATED)
     public void addBox(@RequestBody @Valid BoxCreateDTO boxCreateDto) {
         if (boxCreateDto.start().isAfter(boxCreateDto.finish())) {
             throw new ValidationException("start не должен быть позднее finish");

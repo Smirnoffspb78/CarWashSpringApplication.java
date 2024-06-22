@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.entity;
+package com.smirnov.carwashspring.entity.service;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 
@@ -23,7 +24,8 @@ import java.math.BigDecimal;
 @Entity
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(name = "services")
-public class Work {
+@ToString
+public class CarWashService {
     /**
      * Идентификатор.
      */

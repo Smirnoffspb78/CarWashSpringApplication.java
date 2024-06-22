@@ -1,7 +1,8 @@
-package com.smirnov.carwashspring.entity;
+package com.smirnov.carwashspring.entity.service;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.smirnov.carwashspring.entity.users.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

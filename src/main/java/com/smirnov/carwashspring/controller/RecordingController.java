@@ -3,6 +3,7 @@ package com.smirnov.carwashspring.controller;
 import com.smirnov.carwashspring.dto.RangeDataTimeDTO;
 import com.smirnov.carwashspring.dto.RecordingCreateDTO;
 import com.smirnov.carwashspring.dto.RecordingDTO;
+import com.smirnov.carwashspring.dto.RecordingForUserDTO;
 import com.smirnov.carwashspring.service.RecordingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -113,6 +114,16 @@ public class RecordingController {
     public boolean createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO){
         recordingService.createRecordingByIdUser(recordingDTO);
         return true;
+    }
+
+    /**
+     * Вовзращает все забронированные записи пользователя по его идентификатору.
+     * @param userId Идентификатор пользователя
+     * @return Список забронированных записей
+     */
+    @GetMapping("/users/{id}")
+    public List<RecordingForUserDTO> getAllActiveReserveByUserId(@PathVariable("id") Integer userId){
+        return recordingService.getAllActiveReserveByIdUse(userId);
     }
     /**
      * Вспомогательный метод проверяет корректность введенных даты и времени.

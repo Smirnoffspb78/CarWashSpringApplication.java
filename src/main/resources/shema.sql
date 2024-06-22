@@ -1,3 +1,4 @@
+--Услуги
 CREATE TABLE IF NOT EXISTS services
 (
     id    SERIAL PRIMARY KEY,
@@ -6,23 +7,29 @@ CREATE TABLE IF NOT EXISTS services
     time  INT
 );
 
+--Роли
+CREATE TABLE IF NOT EXISTS roles
+(
+    name VARCHAR(250) NOT NULL PRIMARY KEY
+);
 
+--Пользователи
 CREATE TABLE IF NOT EXISTS users
 (
     id                    SERIAL PRIMARY KEY,
-    login    VARCHAR(250) NOT NULL,
-    password VARCHAR(250) NOT NULL,
+    login                 VARCHAR(250) NOT NULL,
+    password              VARCHAR(250) NOT NULL,
     name                  VARCHAR(200) NOT NULL,
     email                 VARCHAR(200) NOT NULL,
-    role                  VARCHAR(200) NOT NULL,
-    discount              INT         NOT NULL DEFAULT 0,
-    min_discount_for_user INT         NOT NULL DEFAULT 0,
-    max_discount_for_user INT         NOT NULL DEFAULT 0,
-    is_delete             BOOLEAN      NOT NULL DEFAULT false
+    role_name             VARCHAR(200) NOT NULL,
+    discount              INT          NOT NULL DEFAULT 0,
+    min_discount_for_user INT          NOT NULL DEFAULT 0,
+    max_discount_for_user INT          NOT NULL DEFAULT 0,
+    is_delete             BOOLEAN      NOT NULL DEFAULT false,
+    FOREIGN KEY (role_name) REFERENCES roles (name)
 );
 
-
-
+--Боксы
 CREATE TABLE IF NOT EXISTS boxes
 (
     id          SERIAL PRIMARY KEY,
@@ -33,6 +40,7 @@ CREATE TABLE IF NOT EXISTS boxes
     FOREIGN KEY (operator_id) REFERENCES users (id)
 );
 
+--Записи
 CREATE TABLE IF NOT EXISTS records
 (
     id          SERIAL PRIMARY KEY,
@@ -41,17 +49,18 @@ CREATE TABLE IF NOT EXISTS records
     finish      TIMESTAMP NOT NULL,
     is_reserve  BOOLEAN   NOT NULL DEFAULT true,
     is_complite BOOLEAN   NOT NULL DEFAULT false,
-    cost        NUMERIC      NOT NULL,
+    cost        NUMERIC   NOT NULL,
     box_id      INTEGER   NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (box_id) REFERENCES boxes (id)
 );
 
+--Связь услуг и записей
 CREATE TABLE IF NOT EXISTS service_record
 (
     service_id integer NOT NULL,
     record_id  integer NOT NULL,
     PRIMARY KEY (record_id, service_id),
-    FOREIGN KEY (service_id) REFERENCES records (id),
-    FOREIGN KEY (record_id) REFERENCES services (id)
+    FOREIGN KEY (service_id) REFERENCES services (id),
+    FOREIGN KEY (record_id) REFERENCES records (id)
 );

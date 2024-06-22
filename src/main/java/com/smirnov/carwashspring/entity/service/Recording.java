@@ -1,5 +1,7 @@
-package com.smirnov.carwashspring.entity;
+package com.smirnov.carwashspring.entity.service;
 
+import com.smirnov.carwashspring.entity.groupvalidated.RangeDateTimeGroupValidation;
+import com.smirnov.carwashspring.entity.users.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -46,8 +48,8 @@ public class Recording {
     /**
      * Дата начала предоставления услуг.
      */
-    @NotNull(message = "startDate не должна быть null")
-    @Future(message = "start_date должна быть в будущем")
+    @NotNull(message = "start не должнен быть null")
+    @Future(message = "start должна быть в будущем", groups = RangeDateTimeGroupValidation.class)
     @Column(name = "start")
     private LocalDateTime start;
 
@@ -55,8 +57,8 @@ public class Recording {
     /**
      * Дата окончания предоставления услуг.
      */
-    @NotNull(message = "finish_date не должна быть null")
-    @Future(message = "finish_date должна быть в будущем")
+    @NotNull(message = "finish не должна быть null")
+    @Future(message = "finish должен быть в будущем", groups = RangeDateTimeGroupValidation.class)
     @Column(name = "finish")
     private LocalDateTime finish;
 
@@ -93,9 +95,7 @@ public class Recording {
     @NotEmpty(message = "services не должен быть пустым")
     @ManyToMany
     @JoinTable(name = "service_record",
-            joinColumns = @JoinColumn(name = "service_id"),
-            inverseJoinColumns = @JoinColumn(name = "record_id"))
-    private Set<Work> services = new HashSet<>();
-
-
+            joinColumns = @JoinColumn(name = "record_id"),
+            inverseJoinColumns = @JoinColumn(name = "service_id"))
+    private Set<CarWashService> services = new HashSet<>();
 }

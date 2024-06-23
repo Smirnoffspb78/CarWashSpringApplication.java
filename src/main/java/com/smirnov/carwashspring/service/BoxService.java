@@ -5,6 +5,7 @@ import com.smirnov.carwashspring.entity.service.Box;
 import com.smirnov.carwashspring.entity.users.Role;
 import com.smirnov.carwashspring.entity.users.RolesUser;
 import com.smirnov.carwashspring.entity.users.User;
+import com.smirnov.carwashspring.exception.UserNotFoundException;
 import com.smirnov.carwashspring.repository.BoxRepository;
 import com.smirnov.carwashspring.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,7 @@ public class BoxService {
         Role role = new Role();
         role.setRolesUser(RolesUser.ADMIN);
         if (!userRepository.existsByIdAndRole(boxCreateDto.userId(), role)) {
-            throw new IllegalArgumentException("Оператора с id %d не существует".formatted(boxCreateDto.userId()));
+            throw new UserNotFoundException("Админа с id %d не существует".formatted(boxCreateDto.userId()));
         }
         Box box = new Box();
         box.setFinish(boxCreateDto.finish());

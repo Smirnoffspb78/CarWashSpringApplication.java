@@ -1,10 +1,11 @@
 package com.smirnov.carwashspring.exception;
 
+
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public class UserNotFoundException extends NotFoundException {
-    public UserNotFoundException(String message) {
+public class ServiceNotFoundException extends NotFoundException {
+    public ServiceNotFoundException(String message) {
         super(message);
     }
 }

@@ -1,5 +1,6 @@
 package com.smirnov.carwashspring.entity.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -32,6 +33,7 @@ public class CarWashService {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
+    @JsonIgnore
     private Integer id;
     /**
      * Название услуги.

@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface UserRepository extends CrudRepository<User, Integer> {
 
     /**
-     * Возвращает пользователя по id и Прав доступа
+     * Возвращает пользователя по id и Прав доступа.
      * @param id Идентификатор
      * @param role Права доступа
      * @return Пользователь
@@ -23,6 +23,7 @@ public interface UserRepository extends CrudRepository<User, Integer> {
     Optional<User> findByIdAndRole(Integer id, Role role);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users WHERE id=:id AND (role_name='ADMIN' OR role_name='OPERATOR') ")
+    //@Query(value = "SELECT u FROM User u WHERE u.id=?1 AND (u.role = 'ADMIN' OR u.role = 'OPERATOR')")
     Optional<User> findByIdAndRoleIsOperatorOrRoleIsAdmin(Integer id);
     /**
      * Возвращает пользователя по логину, если он не удален.
@@ -39,10 +40,10 @@ public interface UserRepository extends CrudRepository<User, Integer> {
     Optional<User> findByIdAndDeletedIsFalse(Integer id);
 
     /**
-     * Проверяет, есть ли пользователь с идентификатором и правами доступу
+     * Проверяет, есть ли пользователь с идентификатором и правами доступу.
      * @param id Идентификатор
      * @param role Права доступа
-     * @return true/false,если пользователь нашелся/не нашелся
+     * @return true/false, если пользователь нашелся/не нашелся
      */
 
     boolean existsByIdAndRole(Integer id, Role role);

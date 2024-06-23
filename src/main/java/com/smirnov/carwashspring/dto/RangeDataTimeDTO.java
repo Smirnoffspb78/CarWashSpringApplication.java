@@ -1,14 +1,13 @@
 package com.smirnov.carwashspring.dto;
 
-import jakarta.validation.constraints.NotNull;
+import com.smirnov.carwashspring.annotation.RangeLocalDateTime;
 import java.time.LocalDateTime;
-
 /**
- * DTO объект для передаче диапиазона периода.
+ * DTO объект для передачи диапазона периода.
  *
- * @param start  Начало перода.
- * @param finish Окончание перода.
+ * @param start  Начало периода.
+ * @param finish Окончание периода.
  */
-public record RangeDataTimeDTO(@NotNull(message = "start не должен быть null") LocalDateTime start,
-                               @NotNull(message = "finish не должен быть null") LocalDateTime finish) {
+@RangeLocalDateTime
+public record RangeDataTimeDTO(LocalDateTime start,LocalDateTime finish) {
 }

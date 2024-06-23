@@ -20,7 +20,7 @@ import java.util.Set;
  * @param services Список выбранных услуг.
  */
 @Builder
-public record RecordingForUserDTO(
+public record RecordingReservedDTO(
         @NotNull(message = "id не должен быть null") Integer id,
         @NotNull(message = "startDate не должна быть null") @Future(message = "start_date должна быть в будущем") LocalDateTime start,
         @NotNull(message = "finish_date не должна быть null") @Future(message = "finish_date должна быть в будущем") LocalDateTime finish,

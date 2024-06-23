@@ -23,67 +23,88 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
      * @param finish Дата окончания периода
      * @return Выручка
      */
-    @Query(nativeQuery = true, value = Queries.FIND_PROFIT_BY_RANGE)
+    @Query(value = "SELECT SUM(rs.cost) FROM Recording rs WHERE rs.start BETWEEN ?1 AND ?2 AND rs.complited = TRUE")
     Optional<BigDecimal> findSumByRange(LocalDateTime start, LocalDateTime finish);
 
     /**
      * Возвращает запись по идентификатору, если запись не выполнена.
      *
-     * @param id Идентификатор
-     * @return Запись
+     * @param id Идентификатор записи
+     * @return Запись, если она выполнена
      */
-
-    Optional<Recording> findByIdAndComplitedIsFalseAndReservedIsTrue(Integer id);
+    Optional<Recording> findByIdAndComplitedIsFalse(Integer id);
 
     /**
-     * Возвращает запись поее идентификатору, если она забронирована.
-     * @param id идентификатор записи
+     * Возвращает запись по ее идентификатору, если она забронирована.
+     *
+     * @param id Идентификатор записи
      * @return Запись, если она забронирована
      */
     Optional<Recording> findByIdAndReservedIsTrue(Integer id);
+
     /**
      * Возвращает все записи из Бокса
      *
      * @param id Идентификатор бокса
      * @return записи из бокса
      */
-    List<Recording> findAllByBox_Id(Integer id);
+    List<Recording> findByBox_Id(Integer id);
 
     /**
-     * Вовзращает список записей за определенный диапазон даты, времени.
-     * @param start Начало диапазона
+     * Возвращает список записей за определенный диапазон даты, времени.
+     *
+     * @param start  Начало диапазона
      * @param finish Конец диапазона
      * @return Список записей
      */
-    List<Recording> findAllByStartBetween(LocalDateTime start, LocalDateTime finish);
+    List<Recording> findByStartBetween(LocalDateTime start, LocalDateTime finish);
 
     /**
-     * Вовзращает список записей за определенный диапазон даты, времени по идентификатору бокса.
-     * @param id Идентификатор бокса
-     * @param start Начало диапазона
+     * Возвращает список записей за определенный диапазон даты, времени по идентификатору бокса.
+     *
+     * @param id     Идентификатор бокса
+     * @param start  Начало диапазона
      * @param finish Конец диапазона
      * @return Список записей
      */
-    List<Recording> findAllByBox_IdAndStartBetween(Integer id, LocalDateTime start, LocalDateTime finish);
+    List<Recording> findByBox_IdAndStartBetween(Integer id, LocalDateTime start, LocalDateTime finish);
 
 
     /**
-     * Вовзращает спсиок неотмененных невывыполненных заказов пользователя за заданный диапазон времени
+     * Возвращает список неотмененных заказов пользователя за заданный диапазон времени
+     *
      * @param userId Пользователь
-     * @param start началод диапазона
+     * @param start  начало диапазона
      * @param finish конец диапазона
-     * @return спсиок неотмененных невывыполненныхзаказов пользователя
+     * @return список неотмененных невыполненных заказов пользователя
      */
-    @Query(nativeQuery = true, value = "SELECT * FROM records WHERE user_id = :userId AND ((start>=:start AND start<=:finish) OR (finish>=:start AND finish<=:finish))")
-    List<Recording> findAllByUserAndStartAndFinishAndReservedIsTrueAndComplitedIsFalse(Integer userId, LocalDateTime start, LocalDateTime finish);
-    /*List<Recording> findAllByUser_IdAndReservedIsTrueAndComplitedIsFalseAndAndStartBetweenOrFinishBetween
-            (Integer userId, LocalDateTime start, LocalDateTime finish);*/
+    @Query(value = "SELECT rs FROM Recording rs WHERE rs.user.id = ?1 AND rs.reserved = TRUE " +
+            "AND ((rs.start BETWEEN ?2 AND ?3) OR (rs.finish BETWEEN ?2 AND ?3))")
+    List<Recording> findByUserIdAndStartAndFinishAndReservedIsTrue(Integer userId, LocalDateTime start, LocalDateTime finish);
 
     /**
-     * Выводит список активных броней по идентификатору пользователя
+     * Возвращает список неотмененных записей по идентификатору бокса за заданный диапазон даты, времени.
+     *
+     * @param boxId  Идентификатор бокса
+     * @param start  Начало диапазона
+     * @param finish Окончание диапазона
+     * @return Список записей
+     */
+    @Query(value = "SELECT rs FROM Recording rs WHERE rs.box.id = ?1 AND rs.reserved = TRUE AND " +
+            "((rs.start BETWEEN ?2 AND ?3) OR (rs.finish BETWEEN ?2 AND ?3))")
+    List<Recording> findByBox_IdAndReservedIsTrue(Integer boxId, LocalDateTime start, LocalDateTime finish);
+
+    /**
+     * Возвращает список активных броней по идентификатору пользователя.
+     *
      * @param userId Идентификатор пользователя
      */
     List<Recording> findAllByUser_IdAndReservedIsTrue(Integer userId);
 
-
+    /**
+     * Возвращает список выполненных записей по идентификатору пользователя.
+     *
+     * @param userId Идентификатор пользователя
+     */
+    List<Recording> findAllByUser_idAndComplitedIsTrue(Integer userId);
 }

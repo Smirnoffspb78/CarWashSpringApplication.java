@@ -13,8 +13,11 @@ import java.util.List;
 @Repository
 public interface BoxRepository extends CrudRepository<Box, Integer> {
 
+    /**
+     * Возвращает список всех боксов
+     * @return список всех боксов
+     */
     @NonNull
     List<Box> findAll();
 
-    /*List<Box> getFreeBox(int id);*/
 }

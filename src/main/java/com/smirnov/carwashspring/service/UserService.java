@@ -6,7 +6,7 @@ import com.smirnov.carwashspring.entity.service.Recording;
 import com.smirnov.carwashspring.entity.users.Role;
 import com.smirnov.carwashspring.entity.users.RolesUser;
 import com.smirnov.carwashspring.entity.users.User;
-import com.smirnov.carwashspring.exception.LoginExistsException;
+import com.smirnov.carwashspring.exception.LoginNotFoundException;
 import com.smirnov.carwashspring.exception.UserNotFoundException;
 import com.smirnov.carwashspring.repository.RecordingRepository;
 import com.smirnov.carwashspring.repository.UserRepository;;
@@ -107,7 +107,7 @@ public class UserService {
         User user = modelMapper.map(userCreateDTO, User.class);
         User userSave = userRepository.findByLoginAndDeletedIsFalse(user.getLogin()).orElse(null);
         if (userSave != null) {
-            throw new LoginExistsException("login уже занят");
+            throw new LoginNotFoundException("login уже занят");
         }
         userRepository.save(user);
     }

@@ -1,9 +1,7 @@
 package com.smirnov.carwashspring.controller;
 
-import com.smirnov.carwashspring.dto.RangeDataTimeDTO;
-import com.smirnov.carwashspring.dto.RecordingCreateDTO;
-import com.smirnov.carwashspring.dto.RecordingDTO;
-import com.smirnov.carwashspring.dto.RecordingForUserDTO;
+import com.smirnov.carwashspring.annotation.UserExist;
+import com.smirnov.carwashspring.dto.*;
 import com.smirnov.carwashspring.service.RecordingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +22,7 @@ import java.util.List;
 public class RecordingController {
 
     /**
-     * Сервисынй слой записи.
+     * Сервисный слой записи.
      */
     private final RecordingService recordingService;
 
@@ -37,7 +35,6 @@ public class RecordingController {
      */
     @GetMapping("/profit")
     public BigDecimal getProfit(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO) {
-        checkRangeRecording(rangeDataTimeDTO);
         return recordingService.getProfit(rangeDataTimeDTO);
     }
 
@@ -56,6 +53,7 @@ public class RecordingController {
     /**
      * Снимает бронь с записи (делает ее отмененной) по идентификатору.
      * Права доступа: ADMIN и USER с id записи.
+     *
      * @param id Идентификатор записи
      */
     @PutMapping("cancellation/{id}")
@@ -63,8 +61,9 @@ public class RecordingController {
     public void cancellationRecordingById(@PathVariable("id") Integer id) {
         recordingService.cancellationReserveById(id);
     }
+
     /**
-     * Возвращает список записей бокса по идентефикатору.
+     * Возвращает список записей бокса по идентификатору.
      * Права доступа: ADMIN, OPERATOR.
      *
      * @param idBox идентификатор бокса
@@ -84,7 +83,6 @@ public class RecordingController {
      */
     @GetMapping("/by-range-date-time")
     public List<RecordingDTO> getAllRecordingsByDateTimeRange(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO) {
-        checkRangeRecording(rangeDataTimeDTO);
         return recordingService.getAllRecordingsByRange(rangeDataTimeDTO);
     }
 
@@ -93,46 +91,47 @@ public class RecordingController {
      * Права доступа: ADMIN, OPERATOR.
      *
      * @param rangeDataTimeDTO Диапазон даты, времени
-     * @param boxId        - Идентификатор бокса
+     * @param boxId            - Идентификатор бокса
      * @return Список записей за диапазон даты, времени.
      */
     @GetMapping("/by-range-date-time/{boxId}")
     public List<RecordingDTO> getAllRecordingsByDateTimeRangeAndBoxId(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO,
                                                                       @PathVariable("boxId") Integer boxId) {
-        checkRangeRecording(rangeDataTimeDTO);
         return recordingService.getAllRecordingsByRangeAndIdBox(rangeDataTimeDTO, boxId);
     }
 
     /**
      * Создает запись.
      * Права доступа: USER, ADMIN, OPERATOR
+     *
      * @param recordingDTO DTO для создания записи
      * @return true/false, если запись создана/не создана
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public boolean createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO){
+    public boolean createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO) {
         recordingService.createRecordingByIdUser(recordingDTO);
         return true;
     }
 
     /**
-     * Вовзращает все забронированные записи пользователя по его идентификатору.
+     * Возвращает все забронированные записи пользователя по его идентификатору.
+     *
      * @param userId Идентификатор пользователя
      * @return Список забронированных записей
      */
-    @GetMapping("/users/{id}")
-    public List<RecordingForUserDTO> getAllActiveReserveByUserId(@PathVariable("id") Integer userId){
+    @GetMapping("/users/{id}/reserved")
+    public List<RecordingReservedDTO> getAllActiveReserveByUserId(@PathVariable("id") @UserExist Integer userId) {
         return recordingService.getAllActiveReserveByIdUse(userId);
     }
+
     /**
-     * Вспомогательный метод проверяет корректность введенных даты и времени.
-     *
-     * @param rangeDataTimeDTO диапазон даты и времени
+     * Возвращает все выполненные записи по идентификатору пользователя.
+     * @param userId Идентификатор пользователя
+     * @return Список выполненных записей
      */
-    private void checkRangeRecording(RangeDataTimeDTO rangeDataTimeDTO) {
-        if (rangeDataTimeDTO.start().isAfter(rangeDataTimeDTO.finish())) {
-            throw new IllegalArgumentException("startDate cannot be after finishDate");
-        }
+    @GetMapping("/users/{id}/complited")
+    public List<RecordingComplitedDTO> getAllComplitedByUserId(@PathVariable("id")  @UserExist Integer userId) {
+        return recordingService.getAllComplitedRecordingByUserId(userId);
     }
 }

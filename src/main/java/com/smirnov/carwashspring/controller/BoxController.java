@@ -29,7 +29,7 @@ public class BoxController {
     private final BoxService boxService;
 
     /**
-     * Регестрирует новый Бокс.
+     * Регистрирует новый Бокс.
      * Права доступа - ADMIN.
      *
      * @param boxCreateDto DTO Бокс

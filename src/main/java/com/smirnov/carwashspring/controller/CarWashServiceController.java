@@ -31,7 +31,7 @@ public class CarWashServiceController {
     private final WorkService workService;
 
     /**
-     * Возврщает список всех услуг из БД в формате JSON.
+     * Возвращает список всех услуг из БД в формате JSON.
      * Права доступа: ADMIN, OPERATOR, USER.
      *
      * @return Список услуг

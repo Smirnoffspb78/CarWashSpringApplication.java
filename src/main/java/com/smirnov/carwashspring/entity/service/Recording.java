@@ -1,18 +1,10 @@
 package com.smirnov.carwashspring.entity.service;
 
+import com.smirnov.carwashspring.annotation.RangeLocalDateTime;
+import com.smirnov.carwashspring.dto.RangeDataTimeDTO;
 import com.smirnov.carwashspring.entity.groupvalidated.RangeDateTimeGroupValidation;
 import com.smirnov.carwashspring.entity.users.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -25,6 +17,7 @@ import java.util.Set;
  * Запись.
  */
 @Entity
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Getter
 @Setter
 @Table(name = "records")
@@ -35,6 +28,7 @@ public class Recording {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Integer id;
 
     /**
@@ -53,7 +47,6 @@ public class Recording {
     @Column(name = "start")
     private LocalDateTime start;
 
-
     /**
      * Дата окончания предоставления услуг.
      */
@@ -61,6 +54,10 @@ public class Recording {
     @Future(message = "finish должен быть в будущем", groups = RangeDateTimeGroupValidation.class)
     @Column(name = "finish")
     private LocalDateTime finish;
+
+    /*@RangeLocalDateTime
+    @Transient
+    private RangeDataTimeDTO rangeDataTimeDTO = new RangeDataTimeDTO(start, finish);*/
 
     /**
      * Дата и время забронированы.
@@ -75,7 +72,7 @@ public class Recording {
     private boolean complited = false;
 
     /**
-     * Сотоимсоть услуг с учетом скидки
+     * Стоимоcть услуг с учетом скидки.
      */
     @Column(name = "cost")
     @Positive(message = "cost должен быть положительным")

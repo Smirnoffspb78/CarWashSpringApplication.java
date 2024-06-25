@@ -1,8 +1,7 @@
-package com.smirnov.carwashspring.annotation;
+package com.smirnov.carwashspring.validation;
 
 
-import com.smirnov.carwashspring.annotation.validator.AfterLocalDateTimeValidate;
-import com.smirnov.carwashspring.annotation.validator.RangeLocalDateTimeValidator;
+import com.smirnov.carwashspring.validation.validator.RangeLocalDateTimeValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -20,7 +19,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({FIELD, TYPE})
 @Retention(RUNTIME)
 @Constraint(validatedBy = RangeLocalDateTimeValidator.class)
-public @interface RangeLocalDateTime {
+public @interface RangeDateOrTime {
 
     String message() default "Окончание диапазона не должно быть позднее начала";
 

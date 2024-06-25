@@ -20,10 +20,9 @@ public interface UserRepository extends CrudRepository<User, Integer> {
      * @param role Права доступа
      * @return Пользователь
      */
-    Optional<User> findByIdAndRole(Integer id, Role role);
+    Optional<User> findByIdAndRoleAndDeletedIsFalse(Integer id, Role role);
 
     @Query(nativeQuery = true, value = "SELECT * FROM users WHERE id=:id AND (role_name='ADMIN' OR role_name='OPERATOR') ")
-    //@Query(value = "SELECT u FROM User u WHERE u.id=?1 AND (u.role = 'ADMIN' OR u.role = 'OPERATOR')")
     Optional<User> findByIdAndRoleIsOperatorOrRoleIsAdmin(Integer id);
     /**
      * Возвращает пользователя по логину, если он не удален.
@@ -38,14 +37,4 @@ public interface UserRepository extends CrudRepository<User, Integer> {
      * @return Пользователь
      */
     Optional<User> findByIdAndDeletedIsFalse(Integer id);
-
-    /**
-     * Проверяет, есть ли пользователь с идентификатором и правами доступу.
-     * @param id Идентификатор
-     * @param role Права доступа
-     * @return true/false, если пользователь нашелся/не нашелся
-     */
-
-    boolean existsByIdAndRole(Integer id, Role role);
-
 }

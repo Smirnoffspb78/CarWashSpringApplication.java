@@ -39,23 +39,23 @@ class RecordingRepositoryTest {
     @Test
     void findByIdAndComplitedIsFalseAndReservedIsTrue_Test() {
         Recording recording = repository.findById(6).orElse(null);
-        assertEquals(recording, repository.findByIdAndComplitedIsFalse(6).orElseThrow(() -> new RecordingNotFoundException()));
+        assertEquals(recording, repository.findByIdAndCompletedIsFalseAndRemovedIsFalseAndReservedIsTrue(6).orElseThrow(() -> new RecordingNotFoundException()));
     }
 
     @Test
     void findByIdAndComplitedIsFalseAndReservedIsTrue_ThrowsException() {
-        assertThrows(RecordingNotFoundException.class, () -> repository.findByIdAndComplitedIsFalse(1).orElseThrow(() -> new RecordingNotFoundException()));
+        assertThrows(RecordingNotFoundException.class, () -> repository.findByIdAndCompletedIsFalseAndRemovedIsFalseAndReservedIsTrue(1).orElseThrow(() -> new RecordingNotFoundException()));
     }
 
     @Test
-    void findByIdAndReservedIsTrue_Test() {
+    void findByIdAndRemovedIsFalseAndCompletedIsFalse_Test() {
         Recording recording = repository.findById(7).orElse(null);
-        assertEquals(recording, repository.findByIdAndReservedIsTrue(7).orElseThrow(() -> new RecordingNotFoundException()));
+        assertEquals(recording, repository.findByIdAndRemovedIsFalseAndCompletedIsFalse(7).orElseThrow(() -> new RecordingNotFoundException()));
     }
 
     @Test
-    void findByIdAndReservedIsTrue_ThrowsException() {
-        assertThrows(RecordingNotFoundException.class, () -> repository.findByIdAndComplitedIsFalse(1).orElseThrow(() -> new RecordingNotFoundException()));
+    void findByIdAndRemovedIsFalseAndCompletedIsFalse_ThrowsException() {
+        assertThrows(RecordingNotFoundException.class, () -> repository.findByIdAndCompletedIsFalseAndRemovedIsFalseAndReservedIsTrue(1).orElseThrow(() -> new RecordingNotFoundException()));
     }
 
     @Test
@@ -102,35 +102,35 @@ class RecordingRepositoryTest {
     }
 
     @Test
-    void findByUserIdAndStartAndFinishAndReservedIsTrue_Test() {
+    void findByUserIdAndStartAndFinishAndRemovedIsFalse_Test() {
         LocalDateTime start = LocalDateTime.of(2024, 6, 1, 11, 0);
         LocalDateTime finish = LocalDateTime.of(2024, 8, 19, 14, 0);
         List<Recording> recordings = List.of(
                 repository.findById(7).get(),
                 repository.findById(8).get()
         );
-        assertEquals(repository.findByUserIdAndStartAndFinishAndReservedIsTrue(1, start, finish), recordings);
+        assertEquals(repository.findByUserIdAndStartAndFinishAndRemovedIsFalse(1, start, finish), recordings);
     }
 
     @Test
-    void findByUserIdAndStartAndFinishAndReservedIsTrue_Test2() {
+    void findByUserIdAndStartAndFinishAndRemovedIsFalse_Test2() {
         LocalDateTime start = LocalDateTime.of(2024, 8, 18, 14, 40);
         LocalDateTime finish = LocalDateTime.of(2024, 8, 19, 14, 0);
         List<Recording> recordings = List.of(
                 repository.findById(7).get(),
                 repository.findById(8).get()
         );
-        assertEquals(repository.findByUserIdAndStartAndFinishAndReservedIsTrue(1, start, finish), recordings);
+        assertEquals(repository.findByUserIdAndStartAndFinishAndRemovedIsFalse(1, start, finish), recordings);
     }
 
     @Test
-    void findByUserIdAndStartAndFinishAndReservedIsTrue_Test3() {
+    void findByUserIdAndStartAndFinishAndRemovedIsFalse_Test3() {
         LocalDateTime start = LocalDateTime.of(2024, 8, 18, 14, 41);
         LocalDateTime finish = LocalDateTime.of(2024, 8, 19, 14, 0);
         List<Recording> recordings = List.of(
                 repository.findById(8).get()
         );
-        assertEquals(repository.findByUserIdAndStartAndFinishAndReservedIsTrue(1, start, finish), recordings);
+        assertEquals(repository.findByUserIdAndStartAndFinishAndRemovedIsFalse(1, start, finish), recordings);
     }
 
     @Test
@@ -141,7 +141,7 @@ class RecordingRepositoryTest {
                 repository.findById(7).get(),
                 repository.findById(8).get()
         );
-        assertEquals(repository.findByBox_IdAndReservedIsTrue(1, start, finish), recordings);
+        assertEquals(repository.findByBox_IdAndRemovedIsFalse(1, start, finish), recordings);
     }
 
     @Test
@@ -151,7 +151,7 @@ class RecordingRepositoryTest {
         List<Recording> recordings = List.of(
                 repository.findById(8).get()
         );
-        assertEquals(repository.findByBox_IdAndReservedIsTrue(1, start, finish), recordings);
+        assertEquals(repository.findByBox_IdAndRemovedIsFalse(1, start, finish), recordings);
     }
 
     @Test
@@ -160,7 +160,7 @@ class RecordingRepositoryTest {
         LocalDateTime finish = LocalDateTime.of(2024, 8, 19, 13, 59);
         List<Recording> recordings = List.of(
         );
-        assertEquals(repository.findByBox_IdAndReservedIsTrue(1, start, finish), recordings);
+        assertEquals(repository.findByBox_IdAndRemovedIsFalse(1, start, finish), recordings);
     }
 
 
@@ -170,16 +170,16 @@ class RecordingRepositoryTest {
         LocalDateTime finish = LocalDateTime.of(2025, 8, 19, 13, 59);
         List<Recording> recordings = List.of(
         );
-        assertEquals(repository.findByBox_IdAndReservedIsTrue(2, start, finish), recordings);
+        assertEquals(repository.findByBox_IdAndRemovedIsFalse(2, start, finish), recordings);
     }
 
     @Test
-    void findAllByUser_IdAndReservedIsTrue(){
+    void findAllByUser_IdAndReservedIsTrueAndCompletedIsFalse(){
 
     }
 
 
     @Test
-    void findAllByUser_idAndComplitedIsTrue() {
+    void findAllByUser_IdAndCompletedIsTrue() {
     }
 }

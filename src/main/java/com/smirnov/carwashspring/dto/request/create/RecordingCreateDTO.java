@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.dto;
+package com.smirnov.carwashspring.dto.request.create;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotEmpty;
@@ -15,5 +15,5 @@ public record RecordingCreateDTO(
         @NotNull(message = "Пользователь не должен быть null") Integer idUser,
         @NotNull(message = "startDate не должна быть null")
         @Future(message = "Начало предоставления услуг должно быть в будущем") LocalDateTime start,
-        @NotEmpty(message = "Спсиок услуг не может быть null или быть пустым") Set<Integer> idServices) {
+        @NotEmpty(message = "Список услуг не может быть null или быть пустым") Set<Integer> idServices) {
 }

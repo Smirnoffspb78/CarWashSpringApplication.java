@@ -1,17 +1,16 @@
 package com.smirnov.carwashspring.controller;
 
-import com.smirnov.carwashspring.dto.BoxCreateDTO;
+import com.smirnov.carwashspring.dto.response.get.RecordingDTO;
+import com.smirnov.carwashspring.dto.request.create.BoxCreateDTO;
+import com.smirnov.carwashspring.dto.range.RangeDataTimeDTO;
 import com.smirnov.carwashspring.service.BoxService;
+import com.smirnov.carwashspring.service.RecordingService;
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 /**
@@ -20,13 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/boxes")
-@Validated
 public class BoxController {
 
     /**
      * Сервисный слой бокса.
      */
     private final BoxService boxService;
+
+    private final RecordingService recordingService;
 
     /**
      * Регистрирует новый Бокс.
@@ -36,10 +36,35 @@ public class BoxController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void addBox(@RequestBody @Valid BoxCreateDTO boxCreateDto) {
-        if (boxCreateDto.start().isAfter(boxCreateDto.finish())) {
-            throw new ValidationException("start не должен быть позднее finish");
-        }
-        boxService.save(boxCreateDto);
+    public Integer addBox(@RequestBody @Valid BoxCreateDTO boxCreateDto) {
+        return boxService.save(boxCreateDto);
     }
+
+    /**
+     * Возвращает список записей бокса по идентификатору.
+     * Права доступа: ADMIN, OPERATOR(если работает в этом боксе).
+     *
+     * @param id идентификатор бокса
+     * @return список записей бокса
+     */
+    @GetMapping("/{id}/recordings")
+    public List<RecordingDTO> getRecordingsById(@PathVariable("id") Integer id) {
+        return boxService.getAllRecordingById(id);
+    }
+
+    /**
+     * Возвращает список записей бокса за диапазон даты, времени по идентификатору бокса.
+     * Права доступа: ADMIN, OPERATOR(если работает в этом боксе).
+     *
+     * @param rangeDataTimeDTO Диапазон даты, времени
+     * @param boxId            - Идентификатор бокса
+     * @return Список записей за диапазон даты, времени.
+     */
+    @GetMapping("{id}/by-range-date-time/")
+    public List<RecordingDTO> getAllRecordingsByDateTimeRangeAndBoxId(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO,
+                                                                      @PathVariable("id") Integer boxId) {
+        return recordingService.getAllRecordingsByRangeAndIdBox(rangeDataTimeDTO, boxId);
+    }
+
+
 }

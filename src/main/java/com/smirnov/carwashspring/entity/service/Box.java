@@ -3,21 +3,15 @@ package com.smirnov.carwashspring.entity.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.smirnov.carwashspring.entity.users.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Бокс.
@@ -59,9 +53,11 @@ public class Box {
     /**
      * Пользователь с ролью оператора.
      */
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operator_id")
     @NotNull(message = "user не должен быть null")
     private User user;
+
+    @OneToMany (mappedBy = "box", fetch = FetchType.LAZY)
+    private List<Recording> recordings = new ArrayList<>();
 }

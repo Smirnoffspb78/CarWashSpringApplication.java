@@ -1,11 +1,22 @@
 package com.smirnov.carwashspring.entity.service;
 
-import com.smirnov.carwashspring.annotation.RangeLocalDateTime;
-import com.smirnov.carwashspring.dto.RangeDataTimeDTO;
-import com.smirnov.carwashspring.entity.groupvalidated.RangeDateTimeGroupValidation;
+import com.smirnov.carwashspring.validation.groupvalidated.RangeDateTimeGroupValidation;
 import com.smirnov.carwashspring.entity.users.User;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -55,21 +66,24 @@ public class Recording {
     @Column(name = "finish")
     private LocalDateTime finish;
 
-    /*@RangeLocalDateTime
-    @Transient
-    private RangeDataTimeDTO rangeDataTimeDTO = new RangeDataTimeDTO(start, finish);*/
-
     /**
      * Дата и время забронированы.
      */
     @Column(name = "is_reserve", insertable = false)
-    private boolean reserved = true;
+    private boolean reserved;
 
     /**
      * Услуги предоставлены.
      */
-    @Column(name = "is_complite", insertable = false)
-    private boolean complited = false;
+    @Column(name = "is_complete", insertable = false)
+    private boolean completed;
+
+    /**
+     * Услуга удалена
+     */
+    @Column(name = "is_remove", insertable = false)
+    private boolean removed;
+
 
     /**
      * Стоимоcть услуг с учетом скидки.

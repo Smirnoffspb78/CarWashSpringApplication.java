@@ -1,13 +1,26 @@
 package com.smirnov.carwashspring.entity.users;
 
 
-import jakarta.persistence.*;
+import com.smirnov.carwashspring.entity.service.Recording;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.validator.constraints.Range;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Пользователь.
@@ -69,28 +82,17 @@ public class User {
      */
     @Range(min = 0, max = 100, message = "discount должен быть в диапазаоне от 0 до 100")
     @Column(name = "discount", insertable = false)
-    private int discount = 0;
-
-    /**
-     * Максимальная скидка, предоставляемая опреатором.
-     */
-    @Column(name = "min_discount_for_user", insertable = false)
-    @Range(min = 0, max = 100, message = "minDiscountForUsers должен быть в диапазаоне от 0 до 100")
-    private int minDiscountForUsers;
-
-    /**
-     * Максимальная скидка, предоставляемая опреатором.
-     */
-    @Column(name = "max_discount_for_user", insertable = false)
-    @Range(min = 0, max = 100, message = "maxDiscountForUsers должен быть в диапазаоне от 0 до 100")
-    private int maxDiscountForUsers;
-
+    private int discount;
 
     /**
      * Аккаунт удален.
      */
     @Column(name = "is_delete", insertable = false)
-    private boolean deleted = false;
+    private boolean deleted;
 
-
+    /**
+     * Список записей.
+     */
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Recording> recordings = new ArrayList<>();
 }

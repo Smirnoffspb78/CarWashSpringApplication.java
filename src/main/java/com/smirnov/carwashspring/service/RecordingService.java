@@ -1,18 +1,17 @@
 package com.smirnov.carwashspring.service;
 
-import com.smirnov.carwashspring.dto.*;
+import com.smirnov.carwashspring.dto.request.create.RecordingCreateDTO;
+import com.smirnov.carwashspring.dto.response.get.RecordingDTO;
+import com.smirnov.carwashspring.dto.range.RangeDataTimeDTO;
+import com.smirnov.carwashspring.dto.response.get.RecordingReservedDTO;
+import com.smirnov.carwashspring.dto.response.get.RecordingComplitedDTO;
 import com.smirnov.carwashspring.entity.service.Box;
 import com.smirnov.carwashspring.entity.service.Recording;
 import com.smirnov.carwashspring.entity.service.CarWashService;
 import com.smirnov.carwashspring.entity.users.User;
 import com.smirnov.carwashspring.exception.BoxNotFountException;
 import com.smirnov.carwashspring.exception.RecordingNotFoundException;
-import com.smirnov.carwashspring.exception.ServiceNotFoundException;
-import com.smirnov.carwashspring.exception.UserNotFoundException;
-import com.smirnov.carwashspring.repository.BoxRepository;
 import com.smirnov.carwashspring.repository.RecordingRepository;
-import com.smirnov.carwashspring.repository.UserRepository;
-import com.smirnov.carwashspring.repository.CarWashServiceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,22 +39,16 @@ public class RecordingService {
     /**
      * Репозиторий бокса.
      */
-    private final BoxRepository boxRepository;
+    private final BoxService boxService;
     /**
      * Репозиторий пользователя.
      */
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     /**
      * Репозиторий услуг.
      */
-    private final CarWashServiceRepository carWashServiceRepository;
-
-    /**
-     * Список неподтвержденных записей
-     */
-    private final Set<Recording> recordingsNotApproved = new HashSet<>(); //todo потокобезопасный лист. Стэк не подйодет, т.к. удаляться могут в произвольном порядке
-    //todo удаление происходит через отдельный метод
+    private final CarWashServiceService carWashServiceService;
 
     /**
      * Подсчитывает выручку за заданный промежуток времени.
@@ -63,6 +56,7 @@ public class RecordingService {
      * @param rangeDataTimeDTO диапазон даты, времени
      * @return Выручка за заданный промежуток времени
      */
+    @Transactional(readOnly = true)
     public BigDecimal getProfit(RangeDataTimeDTO rangeDataTimeDTO) {
         return recordingRepository.findSumByRange(rangeDataTimeDTO.start(), rangeDataTimeDTO.finish())
                 .orElse(BigDecimal.valueOf(0.0));
@@ -75,74 +69,57 @@ public class RecordingService {
      * @param id Идентификатор записи
      */
     public void updateCompliteById(Integer id) {
-        Recording recordingUpdate = recordingRepository.findByIdAndComplitedIsFalse(id)
+        Recording recordingUpdate = recordingRepository.findByIdAndCompletedIsFalseAndRemovedIsFalseAndReservedIsTrue(id)
                 .orElseThrow(() -> new IllegalArgumentException("Записи с таким id отсутствует или она уже завершенная"));
-        recordingUpdate.setReserved(false);
-        recordingUpdate.setComplited(true);
-    }
-
-
-    /**
-     * Возвращает все записи бокса по его идентификатору.
-     *
-     * @param id Идентификатор бокса
-     * @return Список записей бокса
-     */
-    public List<RecordingDTO> getAllRecordingsByIdBox(Integer id) {
-        checkBoxById(id);
-        List<Recording> recordings = recordingRepository.findByBox_Id(id);
-        return getRecordingDTOS(recordings);
+        recordingUpdate.setCompleted(true);
     }
 
     /**
-     * Возвращает список всех записей за определенную дату, время.
+     * Возвращает список всех записей за диапазон даты, время.
      *
      * @param rangeDataTimeDTO Диапазон даты, времени
      * @return Список записей
      */
+    @Transactional(readOnly = true)
     public List<RecordingDTO> getAllRecordingsByRange(RangeDataTimeDTO rangeDataTimeDTO) {
         List<Recording> recordings = recordingRepository.findByStartBetween(rangeDataTimeDTO.start(), rangeDataTimeDTO.finish());
         return getRecordingDTOS(recordings);
     }
 
     /**
-     * Возвращает список всех записей за диапазон даты времени по идентификатору бокса.
-     *
-     * @param rangeDataTimeDTO Диапазоны даты,
-     * @param idBox            Идентификатор бокса
-     * @return Список записей.
-     */
-    public List<RecordingDTO> getAllRecordingsByRangeAndIdBox(RangeDataTimeDTO rangeDataTimeDTO, Integer idBox) {
-        checkBoxById(idBox);
-        List<Recording> recordings = recordingRepository.findByBox_IdAndStartBetween(idBox, rangeDataTimeDTO.start(), rangeDataTimeDTO.finish());
-        return getRecordingDTOS(recordings);
-    }
-
-    /**
-     * Снимает бронь с записи (делает ее отмененной) по ее идентификатору.
+     * Отменяет запись по ее идентификатору (удаляет, клиент больше не может ее подтвердить).
      *
      * @param id Идентификатор записи
      */
     public void cancellationReserveById(Integer id) {
-        Recording recording = recordingRepository.findByIdAndReservedIsTrue(id).orElseThrow(() -> new IllegalArgumentException("записью с бронью c id %d отсутствует".formatted(id)));
+        Recording recording = getRecordingDTOByIdNotRemovedAndNotCompleted(id);
         recording.setReserved(false);
+        recording.setRemoved(true);
     }
 
-    public boolean createRecordingByIdUser(RecordingCreateDTO recordingDTO) {
-        User user = userRepository.findById(recordingDTO.idUser())
-                .orElseThrow(()-> new UserNotFoundException("Пользователь с id %d не найден".formatted(recordingDTO.idUser())));
-        Set<CarWashService> services= recordingDTO.idServices()
-                .stream().map(id -> carWashServiceRepository.findById(id)
-                        .orElseThrow(() -> new ServiceNotFoundException("Услуги с id %d не найдено".formatted(id))))
+    /**
+     * Создает запись
+     *
+     * @param recordingDTO Параметры записи
+     * @return Идентификатор созданной записи
+     */
+    public Integer createRecordingByIdUser(RecordingCreateDTO recordingDTO) {
+        User user = userService.getUserById(recordingDTO.idUser());
+        Set<CarWashService> services = recordingDTO.idServices()
+                .stream()
+                .map(carWashServiceService::getServiceById)
                 .collect(Collectors.toSet());
+        if (services.isEmpty()) {
+            throw new IllegalArgumentException("Список услуг не может быть пустым");
+        }
         //Получаем базовое время выполнения всех услуг в записи
         int baseTimeAllWork = services.stream()
                 .mapToInt(CarWashService::getTime)
                 .sum();
         //Получаем все боксы
-        List<Box> boxes = boxRepository.findAll();
+        List<Box> boxes = boxService.getAllBoxes();
         if (boxes.isEmpty()) {
-            throw new IllegalArgumentException("Отсутствуют боксы для записи");
+            throw new BoxNotFountException("Отсутствуют боксы для записи");
         }
         //Вычисляем время, за которое запись будет выполнена в каждом боксе
         List<Integer> timeInBox = boxes.stream().map(box -> (int) ceil(box.getUsageRate() * baseTimeAllWork)).toList();
@@ -159,44 +136,39 @@ public class RecordingService {
             }
             //Проверяем работает ли бокс в эти часы
             if (!checkBox || start.toLocalTime().isBefore(boxes.get(i).getStart())
-                    && start.toLocalTime().isAfter(boxes.get(i).getFinish())
-                    && finish.toLocalTime().isAfter(boxes.get(i).getFinish())) {
+                    || finish.toLocalTime().isAfter(boxes.get(i).getFinish())) {
                 checkBox = false;
             }
             //Проверяем, есть ли другие записи в боксе в это время
-            if (!checkBox || !recordingRepository.findByBox_IdAndReservedIsTrue(boxes.get(i).getId(), start, finish).isEmpty()){
+            if (!checkBox || !recordingRepository.findByBox_IdAndRemovedIsFalse(boxes.get(i).getId(), start, finish).isEmpty()) {
                 checkBox = false;
             }
             //Пишем, если все проверки прошли
-            if (checkBox){
+            if (checkBox) {
                 boxesAccessible.add(boxes.get(i));
             }
         }
         if (boxesAccessible.isEmpty()) {
             log.info("Свободно время отсутствует");
-            return false;
+            throw new IllegalArgumentException();
         }
         //Сортируем боксы от самого быстрого до самого медленного. Если в самом быстром запись пересекается с записями клиента, то дальше не смысла проверять
         boxesAccessible.sort(Comparator.comparingDouble(Box::getUsageRate));
         //Самое быстрое окончание выполнения записи
         LocalDateTime finishRecord = recordingDTO.start().plusMinutes((int) ceil(boxesAccessible.get(0).getUsageRate() * baseTimeAllWork));
         //Проверяем, есть ли записи у юзера в это время.
-        if (!recordingRepository.findByUserIdAndStartAndFinishAndReservedIsTrue(recordingDTO.idUser(), recordingDTO.start(), finishRecord).isEmpty()){
+        if (!recordingRepository.findByUserIdAndStartAndFinishAndRemovedIsFalse(recordingDTO.idUser(), recordingDTO.start(), finishRecord).isEmpty()) {
             log.info("У пользователя с id %d уже есть записи на это время".formatted(recordingDTO.idUser()));
-            return false;
+            throw new IllegalArgumentException();
         }
         //Получаем сумму всех услуг c учетом скидки
         BigDecimal discount = new BigDecimal(user.getDiscount());
         BigDecimal costWithDiscount = new BigDecimal(0);
         for (CarWashService service : services) {
             costWithDiscount = costWithDiscount.add(service.getPrice());
-            System.out.println(service.getPrice());
-            System.out.println(costWithDiscount);
         }
-        costWithDiscount = costWithDiscount.subtract(costWithDiscount.multiply(discount)) ;
-        System.out.println("Стоимость услуг "+costWithDiscount);
+        costWithDiscount = costWithDiscount.subtract(costWithDiscount.multiply(discount));
         //Мапим DTO в запись и сохраняем, возвращаем true
-        user.setId(recordingDTO.idUser());
         Recording recording = new Recording();
         recording.setUser(user);
         recording.setStart(recordingDTO.start());
@@ -204,10 +176,99 @@ public class RecordingService {
         recording.setCost(costWithDiscount);
         recording.setBox(boxesAccessible.get(0));
         recording.setServices(services);
-        //Добавляем в список неподтвержденных задач и сохраняем в БД
-        recordingsNotApproved.add(recording);
+        return recordingRepository.save(recording).getId();
+    }
+
+    /**
+     * Обновляет запись по ее идентификатору
+     *
+     * @param id           Идентификатор записи
+     * @param recordingDTO Новые параметры записи
+     */
+    public void updateRecording(Integer id, RecordingCreateDTO recordingDTO) {
+        Recording recording = getRecordingDTOByIdNotRemovedAndNotCompleted(id);
+        //todo НАЧАЛО ОДИНАКОВОГО БЛОКА
+        User user = userService.getUserById(recordingDTO.idUser());
+        if (recording.getUser().getId().equals(recordingDTO.idUser())) {
+            throw new RecordingNotFoundException("Это чужая запись");
+        }
+        Set<CarWashService> services = recordingDTO.idServices()
+                .stream()
+                .map(carWashServiceService::getServiceById)
+                .collect(Collectors.toSet());
+        //Получаем все боксы
+        List<Box> boxes = boxService.getAllBoxes();
+        if (boxes.isEmpty()) {
+            throw new BoxNotFountException("Отсутствуют боксы для записи");
+        }
+        //Получаем базовое время выполнения всех услуг в записи
+        int baseTimeAllWork = services.stream()
+                .mapToInt(CarWashService::getTime)
+                .sum();
+        //Вычисляем время, за которое запись будет выполнена в каждом боксе
+        List<Integer> timeInBox = boxes.stream().map(box -> (int) ceil(box.getUsageRate() * baseTimeAllWork)).toList();
+        //Формируем список всех доступных для записи боксов.
+        List<Box> boxesAccessible = new ArrayList<>();
+        boolean checkBox;
+        for (int i = 0; i < boxes.size(); i++) {
+            checkBox = true;
+            LocalDateTime start = recordingDTO.start();
+            LocalDateTime finish = recordingDTO.start().plusMinutes(timeInBox.get(i));
+            //Проверяем не выпадаем ли на следующий день (круглосуточных боксов нет)
+            if (finish.toLocalDate().isAfter(start.toLocalDate())) {
+                checkBox = false;
+            }
+            //Проверяем работает ли бокс в эти часы
+            if (!checkBox || start.toLocalTime().isBefore(boxes.get(i).getStart())
+                    || finish.toLocalTime().isAfter(boxes.get(i).getFinish())) {
+                checkBox = false;
+            }
+            //todo окончание одинаковости
+
+
+            //Проверяем, есть ли другие записи в боксе в это время, не включая эту запись, т.к. она все равно будет перенесена
+            if (!checkBox || !recordingRepository.findByIdAndBox_IdAndRemovedIsFalse(boxes.get(i).getId(), start, finish, id).isEmpty()) {
+                checkBox = false;
+            }
+
+            //todo Продолжение одинаковости
+            //Пишем, если все проверки прошли
+            if (checkBox) {
+                boxesAccessible.add(boxes.get(i));
+            }
+        }
+        if (boxesAccessible.isEmpty()) {
+            log.info("Свободно время отсутствует");
+            throw new IllegalArgumentException();
+        }
+        //Сортируем боксы от самого быстрого до самого медленного. Если в самом быстром запись пересекается с записями клиента, то дальше не смысла проверять
+        boxesAccessible.sort(Comparator.comparingDouble(Box::getUsageRate));
+        //Самое быстрое окончание выполнения записи
+        LocalDateTime finishRecord = recordingDTO.start().plusMinutes((int) ceil(boxesAccessible.get(0).getUsageRate() * baseTimeAllWork));
+        //todo окончание одинаковости
+        //Проверяем, есть ли записи у юзера в это кроме кроме той, что правим.
+        if (!recordingRepository.findByIdAndUserIdAndStartAndFinishAndRemovedIsFalse(recordingDTO.idUser(), recordingDTO.start(), finishRecord, id).isEmpty()) {
+            log.info("У пользователя с id %d уже есть записи на это время".formatted(recordingDTO.idUser()));
+            throw new IllegalArgumentException();
+        }
+        //todo Продолжение повторяемости
+        //Получаем сумму всех услуг c учетом скидки
+        BigDecimal discount = new BigDecimal(user.getDiscount());
+        BigDecimal costWithDiscount = new BigDecimal(0);
+        for (CarWashService service : services) {
+            costWithDiscount = costWithDiscount.add(service.getPrice());
+        }
+        costWithDiscount = costWithDiscount.subtract(costWithDiscount.multiply(discount));
+        //todo окончание повторяемости
+
+
+        //Меняем
+        recording.setStart(recordingDTO.start());
+        recording.setFinish(finishRecord);
+        recording.setCost(costWithDiscount);
+        recording.setBox(boxesAccessible.get(0));
+        recording.setServices(services);
         recordingRepository.save(recording);
-        return true;
     }
 
     /**
@@ -216,9 +277,10 @@ public class RecordingService {
      * @param userId идентификатор пользователя
      * @return Список активных броней
      */
+    @Transactional(readOnly = true)
     public List<RecordingReservedDTO> getAllActiveReserveByIdUse(Integer userId) {
-       /* checkUserById(userId);*/
-        List<Recording> recordings = recordingRepository.findAllByUser_IdAndReservedIsTrue(userId);
+        userService.checkUserById(userId);
+        List<Recording> recordings = recordingRepository.findAllByUser_IdAndReservedIsTrueAndCompletedIsFalse(userId);
         return recordings.stream().map(
                         recording -> RecordingReservedDTO.builder()
                                 .id(recording.getId())
@@ -231,14 +293,16 @@ public class RecordingService {
                 .toList();
     }
 
+
     /**
      * Возвращает список выполненных записей по идентификатору пользователя.
      *
      * @param userId идентификатор пользователя
      * @return Список выполненных записей
      */
+    @Transactional(readOnly = true)
     public List<RecordingComplitedDTO> getAllComplitedRecordingByUserId(Integer userId) {
-        List<Recording> recordings = recordingRepository.findAllByUser_idAndComplitedIsTrue(userId);
+        List<Recording> recordings = recordingRepository.findAllByUser_IdAndCompletedIsTrue(userId);
         return recordings.stream().map(r -> RecordingComplitedDTO.builder()
                         .id(r.getId())
                         .cost(r.getCost())
@@ -250,8 +314,19 @@ public class RecordingService {
                 .toList();
     }
 
-
-
+    /**
+     * Возвращает список всех записей за диапазон даты времени по идентификатору бокса.
+     *
+     * @param rangeDataTimeDTO Диапазоны даты,
+     * @param idBox            Идентификатор бокса
+     * @return Список записей.
+     */
+    @Transactional(readOnly = true)
+    public List<RecordingDTO> getAllRecordingsByRangeAndIdBox(RangeDataTimeDTO rangeDataTimeDTO, Integer idBox) {
+        boxService.checkBoxById(idBox);
+        List<Recording> recordings = recordingRepository.findByBox_IdAndStartBetween(idBox, rangeDataTimeDTO.start(), rangeDataTimeDTO.finish());
+        return getRecordingDTOS(recordings);
+    }
 
     private List<RecordingDTO> getRecordingDTOS(List<Recording> recordings) {
         return recordings.stream().map(
@@ -261,7 +336,7 @@ public class RecordingService {
                         .start(recording.getStart())
                         .finish(recording.getFinish())
                         .reserved(recording.isReserved())
-                        .complited(recording.isComplited())
+                        .complited(recording.isCompleted())
                         .cost(recording.getCost())
                         .idBox(recording.getBox().getId())
                         .idServices(recording.getServices()
@@ -272,25 +347,14 @@ public class RecordingService {
                         .build()).toList();
     }
 
-    private void checkBoxById(Integer id) {
-        if (!boxRepository.existsById(id)) {
-            throw new BoxNotFountException("Бокс с id "+id+" не найден");
-        }
-    }
-
-    /*private void checkUserById(Integer userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new UserNotFoundException("Пользователь с id %d не найден".formatted(userId));
-        }
-    }*/
-
     /**
-     * Удаляет запись из списка неподтвержденных записей
-     * @param id Идентификатор записи.
+     * Возвращает неудаленную и невыполненную запись по ее идентификатору.
+     *
+     * @param id Идентификатор записи
+     * @return Запись
      */
-    private void approveRecordingById(Integer id) {
-        Recording recording = recordingRepository.findById(id).
-                orElseThrow(()-> new RecordingNotFoundException("Запись с id "+ id +" подтвреждена или не существует" ));
-    recordingsNotApproved.remove(recording);
+    public Recording getRecordingDTOByIdNotRemovedAndNotCompleted(Integer id) {
+        return recordingRepository.findByIdAndRemovedIsFalseAndCompletedIsFalse(id)
+                .orElseThrow(() -> new RecordingNotFoundException("запись c id %d отсутствует".formatted(id)));
     }
 }

@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.dto;
+package com.smirnov.carwashspring.dto.response.get;
 
 import com.smirnov.carwashspring.entity.service.CarWashService;
 import jakarta.validation.constraints.Future;

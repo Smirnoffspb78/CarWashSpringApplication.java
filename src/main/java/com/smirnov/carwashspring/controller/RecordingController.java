@@ -1,7 +1,8 @@
 package com.smirnov.carwashspring.controller;
 
-import com.smirnov.carwashspring.annotation.UserExist;
-import com.smirnov.carwashspring.dto.*;
+import com.smirnov.carwashspring.dto.request.create.RecordingCreateDTO;
+import com.smirnov.carwashspring.dto.response.get.RecordingDTO;
+import com.smirnov.carwashspring.dto.range.RangeDataTimeDTO;
 import com.smirnov.carwashspring.service.RecordingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +28,11 @@ public class RecordingController {
     private final RecordingService recordingService;
 
     /**
-     * Возвращает выручку за заданный промежуток времени.
+     * Возвращает выручку за заданный диапазон даты, времени.
      * Права доступа: ADMIN.
      *
-     * @param rangeDataTimeDTO DTO объект для передаче диапиазона периода.
-     * @return Выручка за заданный промежуток времени
+     * @param rangeDataTimeDTO диапазона даты, времени.
+     * @return Выручка за заданный диапазон даты, времени
      */
     @GetMapping("/profit")
     public BigDecimal getProfit(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO) {
@@ -39,12 +40,12 @@ public class RecordingController {
     }
 
     /**
-     * Отмечает запись, как выполненую, если она не выполнена, по ее идентификатору.
-     * Права доступа: ADMIN, OPERATOR.
+     * Отмечает запись, как выполненную, если она не выполнена, по ее идентификатору.
+     * Права доступа: ADMIN, OPERATOR(если работаем в этом боксе).
      *
      * @param id Идентификатор записи
      */
-    @PutMapping("/complite/{id}")
+    @PutMapping("/{id}/complited")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateRecordComplite(@PathVariable(name = "id") Integer id) {
         recordingService.updateCompliteById(id);
@@ -56,27 +57,15 @@ public class RecordingController {
      *
      * @param id Идентификатор записи
      */
-    @PutMapping("cancellation/{id}")
+    @PutMapping("{id}/cancellation")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void cancellationRecordingById(@PathVariable("id") Integer id) {
         recordingService.cancellationReserveById(id);
     }
 
     /**
-     * Возвращает список записей бокса по идентификатору.
-     * Права доступа: ADMIN, OPERATOR.
-     *
-     * @param idBox идентификатор бокса
-     * @return список записей бокса
-     */
-    @GetMapping("/by-box/{id}")
-    public List<RecordingDTO> getAllRecordingsByIdBox(@PathVariable("id") Integer idBox) {
-        return recordingService.getAllRecordingsByIdBox(idBox);
-    }
-
-    /**
-     * Возвращает список записей бокса за диапазон даты, времени.
-     * Права доступа: ADMIN, OPERATOR.
+     * Возвращает список записей за диапазон даты, времени.
+     * Права доступа: ADMIN.
      *
      * @param rangeDataTimeDTO диапазон даты, времени
      * @return список записей за диапазон даты, времени.
@@ -87,51 +76,27 @@ public class RecordingController {
     }
 
     /**
-     * Возвращает список записей бокса за диапазон даты, времени по идентификатору бокса.
-     * Права доступа: ADMIN, OPERATOR.
-     *
-     * @param rangeDataTimeDTO Диапазон даты, времени
-     * @param boxId            - Идентификатор бокса
-     * @return Список записей за диапазон даты, времени.
-     */
-    @GetMapping("/by-range-date-time/{boxId}")
-    public List<RecordingDTO> getAllRecordingsByDateTimeRangeAndBoxId(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO,
-                                                                      @PathVariable("boxId") Integer boxId) {
-        return recordingService.getAllRecordingsByRangeAndIdBox(rangeDataTimeDTO, boxId);
-    }
-
-    /**
      * Создает запись.
      * Права доступа: USER, ADMIN, OPERATOR
      *
      * @param recordingDTO DTO для создания записи
-     * @return true/false, если запись создана/не создана
+     * @return Идентификатор записи
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public boolean createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO) {
-        recordingService.createRecordingByIdUser(recordingDTO);
-        return true;
+    public Integer createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO) {
+        return recordingService.createRecordingByIdUser(recordingDTO);
     }
 
     /**
-     * Возвращает все забронированные записи пользователя по его идентификатору.
-     *
-     * @param userId Идентификатор пользователя
-     * @return Список забронированных записей
+     * Обновляет запись по ее идентификатору.
+     * Права доступа: ADMIN, OPERATOR, USER, чей id совпадает с id в записи (реализовано на уровне кода)
+     * @param recordingDTO Параметры записи
+     * @param id Идентификатор записи
      */
-    @GetMapping("/users/{id}/reserved")
-    public List<RecordingReservedDTO> getAllActiveReserveByUserId(@PathVariable("id") @UserExist Integer userId) {
-        return recordingService.getAllActiveReserveByIdUse(userId);
-    }
-
-    /**
-     * Возвращает все выполненные записи по идентификатору пользователя.
-     * @param userId Идентификатор пользователя
-     * @return Список выполненных записей
-     */
-    @GetMapping("/users/{id}/complited")
-    public List<RecordingComplitedDTO> getAllComplitedByUserId(@PathVariable("id")  @UserExist Integer userId) {
-        return recordingService.getAllComplitedRecordingByUserId(userId);
+    @PutMapping("/{id}/update")
+    public void updateRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO,
+                                   @PathVariable(name = "id") Integer id) {
+        recordingService.updateRecording(id, recordingDTO);
     }
 }

@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.entity.groupvalidated;
+package com.smirnov.carwashspring.validation.groupvalidated;
 
 /**
  * Группа для валидации диапазоны даты и времени.

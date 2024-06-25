@@ -15,22 +15,22 @@ class UserRepositoryTest {
     UserRepository userRepository;
 
     @Test
-    void findByIdAndRole() {
+    void findByIdAndRoleAndDeletedIsFalse() {
     }
 
     @Test
-    void findByIdAndRoleIsOperatorOrRoleIsAdmin_Operator() {
+    void findByIdAndRoleIsOperatorOrRoleAndDeletedIsFalseIsAdmin_Operator() {
         assertEquals(userRepository.findByIdAndRoleIsOperatorOrRoleIsAdmin(5).get()
                 ,userRepository.findById(5).get());
     }
 
     @Test
-    void findByIdAndRoleIsOperatorOrRoleIsAdmin_Admin() {
+    void findByIdAndRoleIsOperatorOrRoleAndDeletedIsFalseIsAdmin_Admin() {
         assertEquals(userRepository.findByIdAndRoleIsOperatorOrRoleIsAdmin(6).get()
                 ,userRepository.findById(6).get());
     }
     @Test
-    void findByIdAndRoleIsOperatorOrRoleIsAdmin_Throw() {
+    void findByIdAndRoleIsOperatorOrRoleAndDeletedIsFalseIsAdmin_Throw() {
         assertThrows(UserNotFoundException.class, () -> userRepository.findByIdAndRoleIsOperatorOrRoleIsAdmin(4).orElseThrow(()-> new UserNotFoundException()));
     }
 

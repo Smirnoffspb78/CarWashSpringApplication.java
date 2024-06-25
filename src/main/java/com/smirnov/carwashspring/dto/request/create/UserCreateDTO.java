@@ -1,7 +1,6 @@
-package com.smirnov.carwashspring.dto;
+package com.smirnov.carwashspring.dto.request.create;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 /**

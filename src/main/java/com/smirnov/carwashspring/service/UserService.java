@@ -1,24 +1,20 @@
 package com.smirnov.carwashspring.service;
 
 
-import com.smirnov.carwashspring.dto.UserCreateDTO;
+import com.smirnov.carwashspring.dto.request.create.UserCreateDTO;
 import com.smirnov.carwashspring.entity.service.Recording;
+import com.smirnov.carwashspring.entity.users.DiscountWorker;
 import com.smirnov.carwashspring.entity.users.Role;
 import com.smirnov.carwashspring.entity.users.RolesUser;
 import com.smirnov.carwashspring.entity.users.User;
 import com.smirnov.carwashspring.exception.LoginNotFoundException;
 import com.smirnov.carwashspring.exception.UserNotFoundException;
-import com.smirnov.carwashspring.repository.RecordingRepository;
-import com.smirnov.carwashspring.repository.UserRepository;;
-import jakarta.validation.constraints.NotNull;
+import com.smirnov.carwashspring.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.constraints.Range;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-
-import java.util.List;
 
 /**
  * Сервисный слой пользователя.
@@ -39,11 +35,7 @@ public class UserService {
      * Репозиторий пользователя.
      */
     private final UserRepository userRepository;
-
-    /**
-     * Репозиторий записей.
-     */
-    private final RecordingRepository recordingRepository;
+    private final DiscountWorkerService discountWorkerService;
 
     private final ModelMapper modelMapper;
 
@@ -57,10 +49,12 @@ public class UserService {
     public void updateUserBeforeOperator(Integer id) {
         Role role = new Role();
         role.setRolesUser(RolesUser.USER);
-        User user = userRepository.findByIdAndRole(id, role)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с таким id не найден или его права не USER"));
+        User user = getUserByIdAndRole(id, role);
         role.setRolesUser(RolesUser.OPERATOR);
+        DiscountWorker discountWorker = new DiscountWorker();
+        discountWorker.setUser(user);
         user.setRole(role);
+        discountWorkerService.saveDiscountWorker(discountWorker);
     }
 
     /**
@@ -73,27 +67,24 @@ public class UserService {
      */
     @Transactional
     public void updateDiscountForUser(Integer id,
-                                      @Range(min = 0, max = 100, message = "discount должен находиться в диапазоне от 0 до 100 включительно") int discount,
-                                      @NotNull String typeDiscount) {
-        Role role = new Role();
-        role.setRolesUser(RolesUser.OPERATOR);
-        User user = userRepository.findByIdAndRole(id, role).
-                orElseThrow(() -> new IllegalArgumentException("Оператор с таким id не найден или его права не OPERATOR"));
+                                      int discount,
+                                      String typeDiscount) {
+        DiscountWorker discountWorker = discountWorkerService.getDiscountWorkerById(id);
         TypeDiscount typeDiscountEnum = TypeDiscount.valueOf(typeDiscount.toUpperCase());
         switch (typeDiscountEnum) {
             case MIN -> {
-                if (discount > user.getMaxDiscountForUsers()) {
+                if (discount > discountWorker.getMaxDiscountForUsers()) {
                     throw new IllegalArgumentException("minDiscountForUsers не должен быть больше, чем max");
                 }
-                user.setMinDiscountForUsers(discount);
+                discountWorker.setMinDiscountForUsers(discount);
             }
             case MAX -> {
-                if (discount < user.getMinDiscountForUsers()) {
+                if (discount < discountWorker.getMinDiscountForUsers()) {
                     throw new IllegalArgumentException("minDiscountForUsers не должен быть больше, чем max");
                 }
-                user.setMaxDiscountForUsers(discount);
+                discountWorker.setMaxDiscountForUsers(discount);
             }
-            default -> throw new IllegalArgumentException("typeDiscount должен принимать значения min или max");
+            default -> throw new IllegalStateException("Unexpected value: " + typeDiscountEnum);
         }
     }
 
@@ -103,13 +94,13 @@ public class UserService {
      * @param userCreateDTO Пользователь
      */
     @Transactional
-    public void createUser(UserCreateDTO userCreateDTO) {
+    public Integer createUser(UserCreateDTO userCreateDTO) {
         User user = modelMapper.map(userCreateDTO, User.class);
         User userSave = userRepository.findByLoginAndDeletedIsFalse(user.getLogin()).orElse(null);
         if (userSave != null) {
             throw new LoginNotFoundException("login уже занят");
         }
-        userRepository.save(user);
+        return userRepository.save(user).getId();
     }
 
     /**
@@ -119,10 +110,10 @@ public class UserService {
      */
     @Transactional
     public void deleteUser(Integer id) {
-        User user = userRepository.findByIdAndDeletedIsFalse(id)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с id %d не найден".formatted(id)));
-        List<Recording> recordings = recordingRepository.findAllByUser_IdAndReservedIsTrue(id);
-        recordings.forEach(recording -> recording.setReserved(false)); //todo настройка валидации
+        User user = getUserById(id);
+        user.getRecordings().stream()
+                .filter(Recording::isReserved)
+                .forEach(recording -> recording.setReserved(false));
         user.setDeleted(true);
     }
 
@@ -130,16 +121,14 @@ public class UserService {
      * Назначает скидку пользователю по идентификатору
      *
      * @param discount          Размер скидки, [%]
-     * @param idOperatorOrAdmin Идентификатор оператора или админа
+     * @param idOperator Идентификатор оператора или админа
      * @param idUser            Идентификатор пользователя
      */
     @Transactional
-    public void activateDiscount(int discount, Integer idOperatorOrAdmin, Integer idUser) {
-        User user = userRepository.findById(idUser)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с id %d не найден".formatted(idUser)));
-        User operatorOrAdmin = userRepository.findByIdAndRoleIsOperatorOrRoleIsAdmin(idOperatorOrAdmin)
-                .orElseThrow(() -> new UserNotFoundException("Оператор и администратор с id %d не найден".formatted(idOperatorOrAdmin)));
-        if (discount > operatorOrAdmin.getMaxDiscountForUsers() || discount < operatorOrAdmin.getMinDiscountForUsers()) {
+    public void activateDiscount(int discount, Integer idOperator, Integer idUser) {
+        User user = getUserById(idUser);
+        DiscountWorker discountWorker = discountWorkerService.getDiscountWorkerById(discount);
+        if (discount > discountWorker.getMaxDiscountForUsers() || discount < discountWorker.getMinDiscountForUsers()) {
             throw new IllegalArgumentException("discount должен быть в диапазоне от MinDiscount до MaxDiscount");
         }
         user.setDiscount(discount);
@@ -152,8 +141,22 @@ public class UserService {
      */
     @Transactional
     public void deactivateDiscount(Integer id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с id %d не найден".formatted(id)));
+        User user = getUserById(id);
         user.setDiscount(0);
+    }
+    
+    public User getUserById(Integer id) {
+        return userRepository.findByIdAndDeletedIsFalse(id)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id %d не найден".formatted(id)));
+    }
+    public User getUserByIdAndRole(Integer id, Role role) {
+        return userRepository.findByIdAndRoleAndDeletedIsFalse(id, role).
+                orElseThrow(() -> new IllegalArgumentException("Оператор с таким id не найден или его права не OPERATOR"));
+    }
+
+    public void checkUserById (Integer id){
+        if (!userRepository.existsById(id)){
+            throw new UserNotFoundException("Пользователь с таким id не найден");
+        }
     }
 }

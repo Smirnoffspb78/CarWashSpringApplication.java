@@ -5,16 +5,23 @@ VALUES ('USER'),
        ('ADMIN');
 
 /*Тестовые пользователи*/
-INSERT INTO users (name, login, password, email, role_name, discount, min_discount_for_user, max_discount_for_user,
+INSERT INTO users (name, login, password, email, role_name, discount,
                    is_delete)
-VALUES ('Ivan', 'ivan', 'ivanivan', 'ivan@mail.ru', 'USER', 0, 0, 0, false),
-       ('Petr', 'petr', 'petrpetr', 'petr@mail.ru', 'USER', 0, 0, 0, false),
-       ('Alex', 'alex', 'alexalex', 'alex@mail.ru', 'USER', 0, 0, 0, false),
-       ('Sidr', 'sidr', 'sidrsidr', 'sidr@mail.ru', 'USER', 0, 0, 0, false),
-       ('Dmitry', 'dmitry', 'dmitrydmitry', 'dmitry@mail.ru', 'OPERATOR', 0, 0, 0, false),
-       ('Admin', 'admin', 'adminadmin', 'admin@mail.ru', 'ADMIN', 0, 0, 0, false),
-       ('Sergey', 'sergey', 'sergeysergey', 'sergey@mail.ru', 'OPERATOR', 0, 0, 0, false);
+VALUES ('Ivan', 'ivan', 'ivanivan', 'ivan@mail.ru', 'USER', 0, false),
+       ('Petr', 'petr', 'petrpetr', 'petr@mail.ru', 'USER', 0, false),
+       ('Alex', 'alex', 'alexalex', 'alex@mail.ru', 'USER', 0, false),
+       ('Sidr', 'sidr', 'sidrsidr', 'sidr@mail.ru', 'USER', 0, false),
+       ('Dmitry', 'dmitry', 'dmitrydmitry', 'dmitry@mail.ru', 'OPERATOR', 0, false),
+       ('Admin', 'admin', 'adminadmin', 'admin@mail.ru', 'ADMIN', 0, false),
+       ('Sergey', 'sergey', 'sergeysergey', 'sergey@mail.ru', 'OPERATOR', 0, false);
 
+
+/*Тестовые скидки*/
+INSERT INTO discount_workers (id, min_discount_for_user, max_discount_for_user)
+
+VALUES(5, 0, 0),
+      (6, 0, 0),
+      (7, 0, 0);
 
 /*Тестовые боксы*/
 INSERT INTO boxes (start, finish, usage_rate, operator_id)
@@ -34,7 +41,7 @@ VALUES ('Заливка охлаждающей жидкости', 500, 10),
 
 
 /*Тестовые записи */
-INSERT INTO records(user_id, start, finish, is_reserve, is_complite, cost, box_id)
+INSERT INTO records(user_id, start, finish, is_reserve, is_complete, cost, box_id)
 VALUES (1, '2024-05-17 12:00:00', '2024-05-17 12:40:00', false, true, 2000, 1),
        (2, '2024-05-17 13:00:00', '2024-05-17 13:50:00', false, true, 3000, 1),
        (1, '2024-06-01 12:00:00', '2024-06-01 12:40:00', false, true, 2000, 2),

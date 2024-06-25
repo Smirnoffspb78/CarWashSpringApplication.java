@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.dto;
+package com.smirnov.carwashspring.dto.response.get;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

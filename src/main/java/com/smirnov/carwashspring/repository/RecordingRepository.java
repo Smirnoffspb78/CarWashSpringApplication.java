@@ -23,7 +23,7 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
      * @param finish Дата окончания периода
      * @return Выручка
      */
-    @Query(value = "SELECT SUM(rs.cost) FROM Recording rs WHERE rs.start BETWEEN ?1 AND ?2 AND rs.complited = TRUE")
+    @Query(value = "SELECT SUM(rs.cost) FROM Recording rs WHERE rs.start BETWEEN ?1 AND ?2 AND rs.completed = TRUE")
     Optional<BigDecimal> findSumByRange(LocalDateTime start, LocalDateTime finish);
 
     /**
@@ -32,23 +32,15 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
      * @param id Идентификатор записи
      * @return Запись, если она выполнена
      */
-    Optional<Recording> findByIdAndComplitedIsFalse(Integer id);
+    Optional<Recording> findByIdAndCompletedIsFalseAndRemovedIsFalseAndReservedIsTrue(Integer id);
 
     /**
-     * Возвращает запись по ее идентификатору, если она забронирована.
+     * Возвращает запись по ее идентификатору, если она не отменена и не выполнена.
      *
      * @param id Идентификатор записи
      * @return Запись, если она забронирована
      */
-    Optional<Recording> findByIdAndReservedIsTrue(Integer id);
-
-    /**
-     * Возвращает все записи из Бокса
-     *
-     * @param id Идентификатор бокса
-     * @return записи из бокса
-     */
-    List<Recording> findByBox_Id(Integer id);
+    Optional<Recording> findByIdAndRemovedIsFalseAndCompletedIsFalse(Integer id);
 
     /**
      * Возвращает список записей за определенный диапазон даты, времени.
@@ -71,16 +63,42 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
 
 
     /**
-     * Возвращает список неотмененных заказов пользователя за заданный диапазон времени
+     * Возвращает список неудаленных невыполненных заказов пользователя за заданный диапазон времени.
      *
      * @param userId Пользователь
      * @param start  начало диапазона
      * @param finish конец диапазона
      * @return список неотмененных невыполненных заказов пользователя
      */
-    @Query(value = "SELECT rs FROM Recording rs WHERE rs.user.id = ?1 AND rs.reserved = TRUE " +
-            "AND ((rs.start BETWEEN ?2 AND ?3) OR (rs.finish BETWEEN ?2 AND ?3))")
-    List<Recording> findByUserIdAndStartAndFinishAndReservedIsTrue(Integer userId, LocalDateTime start, LocalDateTime finish);
+    @Query(value = """
+            SELECT rs FROM Recording rs
+            WHERE rs.user.id = ?1
+            AND rs.removed = FALSE
+            AND rs.completed = FALSE
+            AND ((rs.start >= ?2 AND rs.start < ?3)
+            OR (rs.finish > ?2 AND rs.finish <= ?3)
+            OR (rs.start <= ?2 AND rs.finish >= ?3))""")
+    List<Recording> findByUserIdAndStartAndFinishAndRemovedIsFalse(Integer userId, LocalDateTime start, LocalDateTime finish);
+
+    /**
+     * Возвращает список неудаленных невыполненных заказов пользователя за заданный диапазон времени,
+     * кроме заказа, который редактируется.
+     *
+     * @param userId Пользователь
+     * @param start  начало диапазона
+     * @param finish конец диапазона
+     * @return список неотмененных невыполненных заказов пользователя
+     */
+    @Query(value = """
+            SELECT rs FROM Recording rs
+            WHERE rs.user.id = ?1
+            AND rs.removed = FALSE
+            AND rs.completed = FALSE
+            AND rs.id != ?4
+            AND ((rs.start >= ?2 AND rs.start < ?3)
+            OR (rs.finish > ?2 AND rs.finish <= ?3)
+            OR (rs.start <= ?2 AND rs.finish >= ?3))""")
+    List<Recording> findByIdAndUserIdAndStartAndFinishAndRemovedIsFalse(Integer userId, LocalDateTime start, LocalDateTime finish, Integer id);
 
     /**
      * Возвращает список неотмененных записей по идентификатору бокса за заданный диапазон даты, времени.
@@ -90,21 +108,51 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
      * @param finish Окончание диапазона
      * @return Список записей
      */
-    @Query(value = "SELECT rs FROM Recording rs WHERE rs.box.id = ?1 AND rs.reserved = TRUE AND " +
-            "((rs.start BETWEEN ?2 AND ?3) OR (rs.finish BETWEEN ?2 AND ?3))")
-    List<Recording> findByBox_IdAndReservedIsTrue(Integer boxId, LocalDateTime start, LocalDateTime finish);
+    @Query(value = """
+            SELECT rs FROM Recording rs
+            WHERE rs.box.id = ?1
+            AND rs.removed = FALSE
+            AND rs.completed = FALSE
+            AND ((rs.start >= ?2 AND rs.start < ?3)
+            OR (rs.finish > ?2 AND rs.finish <= ?3)
+            OR (rs.start <= ?2 AND rs.finish >= ?3))
+            """)
+    List<Recording> findByBox_IdAndRemovedIsFalse(Integer boxId, LocalDateTime start, LocalDateTime finish);
+
+    /**
+     * Возвращает список неотмененных записей по идентификатору бокса за заданный диапазон даты, времени,
+     * кроме записи с идентификатором изменяемой.
+     *
+     * @param boxId  Идентификатор бокса
+     * @param start  Начало диапазона
+     * @param finish Окончание диапазона
+     * @param id Идентификатор записи
+     * @return Список записей
+     */
+    @Query(value = """
+            SELECT rs FROM Recording rs
+            WHERE rs.box.id = ?1
+            AND rs.removed = FALSE
+            AND rs.completed = FALSE
+            AND rs.id!=?4
+            AND ((rs.start >= ?2 AND rs.start < ?3)
+            OR (rs.finish > ?2 AND rs.finish <= ?3)
+            OR (rs.start <= ?2 AND rs.finish >= ?3))
+            """)
+    List<Recording> findByIdAndBox_IdAndRemovedIsFalse(Integer boxId, LocalDateTime start, LocalDateTime finish, Integer id);
+
 
     /**
      * Возвращает список активных броней по идентификатору пользователя.
      *
      * @param userId Идентификатор пользователя
      */
-    List<Recording> findAllByUser_IdAndReservedIsTrue(Integer userId);
+    List<Recording> findAllByUser_IdAndReservedIsTrueAndCompletedIsFalse(Integer userId);
 
     /**
      * Возвращает список выполненных записей по идентификатору пользователя.
      *
      * @param userId Идентификатор пользователя
      */
-    List<Recording> findAllByUser_idAndComplitedIsTrue(Integer userId);
+    List<Recording> findAllByUser_IdAndCompletedIsTrue(Integer userId);
 }

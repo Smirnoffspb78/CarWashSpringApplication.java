@@ -43,14 +43,14 @@ public class BoxService {
     public Integer save(BoxCreateDTO boxCreateDto) {
         Role role = new Role();
         role.setRolesUser(RolesUser.OPERATOR);
-        //Box box = modelMapper.map(boxCreateDto, Box.class);
+        Box box = modelMapper.map(boxCreateDto, Box.class);
         User user = userService.getUserByIdAndRole(boxCreateDto.userId(), role);
-        Box box = new Box();
+        /*Box box = new Box();
         box.setFinish(boxCreateDto.finish());
         box.setStart(boxCreateDto.start());
         box.setUsageRate(boxCreateDto.usageRate());
         user.setId(boxCreateDto.userId());
-        box.setUser(user);
+        box.setUser(user);*/
         return boxRepository.save(box).getId();
     }
 

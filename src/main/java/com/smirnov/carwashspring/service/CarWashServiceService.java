@@ -37,12 +37,8 @@ public class CarWashServiceService {
     @Transactional(readOnly = true)
     public List<CarWashServiceDTO> getAllServices() {
         log.info("getAllServices");
-        /*return carWashServiceRepository.findAll().stream()
-                .map(service -> modelMapper.map(service, CarWashServiceDTO.class))
-                .toList();*/
         return carWashServiceRepository.findAll().stream()
-                .map(carWashService ->
-                        new CarWashServiceDTO(carWashService.getName(), carWashService.getPrice(), carWashService.getTime()))
+                .map(service -> modelMapper.map(service, CarWashServiceDTO.class))
                 .toList();
     }
 
@@ -52,10 +48,7 @@ public class CarWashServiceService {
      * @param serviceDTO Услуга
      */
     public Integer save(CarWashServiceDTO serviceDTO) {
-        CarWashService carWashService = new CarWashService();
-        carWashService.setName(serviceDTO.name());
-        carWashService.setPrice(serviceDTO.price());
-        carWashService.setTime(serviceDTO.time());
+        CarWashService carWashService = modelMapper.map(serviceDTO, CarWashService.class);
         return carWashServiceRepository.save(carWashService).getId();
     }
 

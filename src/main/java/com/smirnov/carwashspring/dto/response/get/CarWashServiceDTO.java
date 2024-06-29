@@ -1,16 +1,27 @@
 package com.smirnov.carwashspring.dto.response.get;
 
 
-import lombok.Builder;
+import lombok.*;
 
 
 import java.math.BigDecimal;
 
 /**
- * @param name  Название услуги.
- * @param price Стоимость, [рубли].
- * @param time  Базовое время выполнения, [минуты].
+ * DTO для получения информации об услуге
  */
-@Builder
-public record CarWashServiceDTO(String name, BigDecimal price, int time) {
+@Getter
+@Setter
+public final class CarWashServiceDTO {
+    /**
+     * Название услуги.
+     */
+    private String name;
+    /**
+     * price Стоимость, [рубли].
+     */
+    private BigDecimal price;
+    /**
+     * Базовое время выполнения, [минуты].
+     */
+    private int time;
 }

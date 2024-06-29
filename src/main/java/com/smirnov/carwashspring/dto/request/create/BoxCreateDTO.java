@@ -4,19 +4,34 @@ import com.smirnov.carwashspring.dto.range.Range;
 import com.smirnov.carwashspring.validation.RangeDateOrTime;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.Getter;
+
+import lombok.Setter;
+
 import java.time.LocalTime;
 
+
 /**
- * @param start     Время начала работы.
- * @param finish    Время окончания работы.
- * @param usageRate Коэффициент использования.
- * @param userId    Пользователь с ролью оператора.
+ *
  */
 @RangeDateOrTime
-public record BoxCreateDTO (@NotNull(message = "start не должен быть null") LocalTime start,
-                           @NotNull(message = "finish не должен быть null") LocalTime finish,
-                           @Positive(message = "usageRate должен быть положительным") float usageRate,
-                           @NotNull(message = "userId не должен быть null") Integer userId
-
-) implements Range {
+@Getter
+@Setter
+public class BoxCreateDTO implements Range {
+    /**
+     * Время начала работы.
+     */
+    private @NotNull(message = "start не должен быть null") LocalTime start;
+    /**
+     * Время окончания работы.
+     */
+    private @NotNull(message = "finish не должен быть null") LocalTime finish;
+    /**
+     * Коэффициент использования.
+     */
+    private @Positive(message = "usageRate должен быть положительным") float usageRate;
+    /**
+     * Пользователь с ролью оператора.
+     */
+    private @NotNull(message = "operatorId не должен быть null") Integer operatorId;
 }

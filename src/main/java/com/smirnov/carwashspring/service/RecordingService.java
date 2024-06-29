@@ -5,6 +5,7 @@ import com.smirnov.carwashspring.dto.response.get.RecordingDTO;
 import com.smirnov.carwashspring.dto.range.RangeDataTimeDTO;
 import com.smirnov.carwashspring.dto.response.get.RecordingReservedDTO;
 import com.smirnov.carwashspring.dto.response.get.RecordingComplitedDTO;
+import com.smirnov.carwashspring.email.EmailService;
 import com.smirnov.carwashspring.entity.service.Box;
 import com.smirnov.carwashspring.entity.service.Recording;
 import com.smirnov.carwashspring.entity.service.CarWashService;
@@ -14,6 +15,7 @@ import com.smirnov.carwashspring.exception.RecordingNotFoundException;
 import com.smirnov.carwashspring.repository.RecordingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +51,10 @@ public class RecordingService {
      * Репозиторий услуг.
      */
     private final CarWashServiceService carWashServiceService;
+
+    private final ModelMapper modelMapper;
+
+    private final EmailService emailService;
 
     /**
      * Подсчитывает выручку за заданный промежуток времени.
@@ -293,6 +299,11 @@ public class RecordingService {
                 .toList();
     }
 
+    public void approve(Integer id) {
+        Recording recording = recordingRepository.findByIdAndReservedIsFalseAndRemovedIsFalse(id)
+                .orElseThrow(()->new RecordingNotFoundException("Запись не найдена"));
+        recording.setReserved(true);
+    }
 
     /**
      * Возвращает список выполненных записей по идентификатору пользователя.
@@ -328,23 +339,17 @@ public class RecordingService {
         return getRecordingDTOS(recordings);
     }
 
-    private List<RecordingDTO> getRecordingDTOS(List<Recording> recordings) {
+    public List<RecordingDTO> getRecordingDTOS(List<Recording> recordings) {
         return recordings.stream().map(
-                recording -> RecordingDTO.builder()
-                        .id(recording.getId())
-                        .idUser(recording.getUser().getId())
-                        .start(recording.getStart())
-                        .finish(recording.getFinish())
-                        .reserved(recording.isReserved())
-                        .complited(recording.isCompleted())
-                        .cost(recording.getCost())
-                        .idBox(recording.getBox().getId())
-                        .idServices(recording.getServices()
-                                .stream()
-                                .map(CarWashService::getId)
-                                .collect(Collectors
-                                        .toSet()))
-                        .build()).toList();
+                recording -> {
+                    RecordingDTO recordingDTO = modelMapper.map(recording, RecordingDTO.class);
+                    recordingDTO.setIdServices(recording.getServices()
+                            .stream()
+                            .map(CarWashService::getId)
+                            .collect(Collectors
+                                    .toSet()));
+                    return recordingDTO;
+                }).toList();
     }
 
     /**

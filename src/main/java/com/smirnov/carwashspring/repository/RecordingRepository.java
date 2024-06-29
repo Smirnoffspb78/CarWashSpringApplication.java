@@ -155,4 +155,11 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
      * @param userId Идентификатор пользователя
      */
     List<Recording> findAllByUser_IdAndCompletedIsTrue(Integer userId);
+
+    /**
+     * Возвращает запись по ее идентификатору без подтверждения, если она еще не удалена.
+     * @param id Идентификатор записи
+     * @return Запись.
+     */
+    Optional<Recording> findByIdAndReservedIsFalseAndRemovedIsFalse(Integer id);
 }

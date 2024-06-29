@@ -9,8 +9,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -74,13 +74,13 @@ public class User {
      */
 
     @JoinColumn(name = "role_name")
-    @OneToOne
+    @ManyToOne
     private Role role;
 
     /**
      * Персональная скидка, [%].
      */
-    @Range(min = 0, max = 100, message = "discount должен быть в диапазаоне от 0 до 100")
+    @Range(min = 0, max = 100, message = "discount должен быть в диапазоне от 0 до 100")
     @Column(name = "discount", insertable = false)
     private int discount;
 

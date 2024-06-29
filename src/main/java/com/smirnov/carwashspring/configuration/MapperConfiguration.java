@@ -15,8 +15,7 @@ public class MapperConfiguration {
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
                 .setSkipNullEnabled(true)
-                .setFieldAccessLevel(PRIVATE)
-                .setImplicitMappingEnabled(true);
+                .setFieldAccessLevel(PRIVATE);
         return modelMapper;
     }
 }

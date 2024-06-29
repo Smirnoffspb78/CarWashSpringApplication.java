@@ -35,6 +35,10 @@ public class UserService {
      * Репозиторий пользователя.
      */
     private final UserRepository userRepository;
+
+    /**
+     * Сервисный слой скидки, предоставляемой оператором.
+     */
     private final DiscountWorkerService discountWorkerService;
 
     private final ModelMapper modelMapper;
@@ -47,13 +51,10 @@ public class UserService {
      */
     @Transactional
     public void updateUserBeforeOperator(Integer id) {
-        Role role = new Role();
-        role.setRolesUser(RolesUser.USER);
-        User user = getUserByIdAndRole(id, role);
-        role.setRolesUser(RolesUser.OPERATOR);
+        User user = getUserByIdAndRole(id, new Role(RolesUser.USER));
         DiscountWorker discountWorker = new DiscountWorker();
         discountWorker.setUser(user);
-        user.setRole(role);
+        user.setRole(new Role(RolesUser.OPERATOR));
         discountWorkerService.saveDiscountWorker(discountWorker);
     }
 
@@ -95,11 +96,11 @@ public class UserService {
      */
     @Transactional
     public Integer createUser(UserCreateDTO userCreateDTO) {
-        User user = modelMapper.map(userCreateDTO, User.class);
-        User userSave = userRepository.findByLoginAndDeletedIsFalse(user.getLogin()).orElse(null);
-        if (userSave != null) {
+        if (userRepository.existsByLoginAndDeletedIsFalse(userCreateDTO.login())) {
             throw new LoginNotFoundException("login уже занят");
         }
+        User user = modelMapper.map(userCreateDTO, User.class);
+        user.setRole(new Role(RolesUser.USER));
         return userRepository.save(user).getId();
     }
 

@@ -42,12 +42,12 @@ public class RangeLocalDateTimeValidator implements ConstraintValidator<RangeDat
             return true;
         }
         if (value instanceof BoxCreateDTO rangeTimeDTO) {
-            if (rangeTimeDTO.start() == null || rangeTimeDTO.finish() == null) {
+            if (rangeTimeDTO.getStart() == null || rangeTimeDTO.getFinish() == null) {
                 log.error("RangeDataTimeDTO or components is null");
                 context.disableDefaultConstraintViolation();
                 return false;
             }
-            if (rangeTimeDTO.start().isAfter(rangeTimeDTO.finish())) {
+            if (rangeTimeDTO.getStart().isAfter(rangeTimeDTO.getFinish())) {
                 log.error(message);
                 context.disableDefaultConstraintViolation();
                 return false;

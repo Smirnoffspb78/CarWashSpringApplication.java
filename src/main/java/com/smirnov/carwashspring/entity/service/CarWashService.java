@@ -61,5 +61,4 @@ public class CarWashService {
     @Positive
     @Column(name = "time")
     private int time;
-
 }

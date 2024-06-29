@@ -88,6 +88,12 @@ public class RecordingController {
         return recordingService.createRecordingByIdUser(recordingDTO);
     }
 
+    @PostMapping("/{id}/approve")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void approveRecording(@PathVariable(name = "id") Integer id) {
+        recordingService.approve(id);
+    }
+
     /**
      * Обновляет запись по ее идентификатору.
      * Права доступа: ADMIN, OPERATOR, USER, чей id совпадает с id в записи (реализовано на уровне кода)

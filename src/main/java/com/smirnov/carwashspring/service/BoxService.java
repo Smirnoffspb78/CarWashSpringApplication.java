@@ -5,8 +5,6 @@ import com.smirnov.carwashspring.dto.request.create.BoxCreateDTO;
 import com.smirnov.carwashspring.entity.service.Box;
 import com.smirnov.carwashspring.exception.BoxNotFountException;
 import com.smirnov.carwashspring.repository.BoxRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -18,7 +16,6 @@ import java.util.List;
  * Сервисный слой бокса.
  */
 @Service
-
 @Transactional
 public class BoxService {
 

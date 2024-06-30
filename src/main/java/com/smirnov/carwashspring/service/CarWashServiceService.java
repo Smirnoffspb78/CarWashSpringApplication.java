@@ -1,5 +1,6 @@
 package com.smirnov.carwashspring.service;
 
+import com.smirnov.carwashspring.dto.request.create.CarWashServiceCreateDTO;
 import com.smirnov.carwashspring.dto.response.get.CarWashServiceDTO;
 import com.smirnov.carwashspring.entity.service.CarWashService;
 import com.smirnov.carwashspring.exception.ServiceNotFoundException;
@@ -47,7 +48,7 @@ public class CarWashServiceService {
      *
      * @param serviceDTO Услуга
      */
-    public Integer save(CarWashServiceDTO serviceDTO) {
+    public Integer save(CarWashServiceCreateDTO serviceDTO) {
         CarWashService carWashService = modelMapper.map(serviceDTO, CarWashService.class);
         return carWashServiceRepository.save(carWashService).getId();
     }

@@ -128,7 +128,7 @@ public class UserService {
     @Transactional
     public void activateDiscount(int discount, Integer idOperator, Integer idUser) {
         User user = getUserById(idUser);
-        DiscountWorker discountWorker = discountWorkerService.getDiscountWorkerById(discount);
+        DiscountWorker discountWorker = discountWorkerService.getDiscountWorkerById(idOperator);
         if (discount > discountWorker.getMaxDiscountForUsers() || discount < discountWorker.getMinDiscountForUsers()) {
             throw new IllegalArgumentException("discount должен быть в диапазоне от MinDiscount до MaxDiscount");
         }

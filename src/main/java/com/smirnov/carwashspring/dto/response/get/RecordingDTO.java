@@ -1,17 +1,18 @@
 package com.smirnov.carwashspring.dto.response.get;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 /**
- *
+ * DTO для получения информации о записи.
  */
 
 @Builder
@@ -23,36 +24,39 @@ public final class RecordingDTO {
     /**
      * Идентификатор записи.
      */
-    @NotNull(message = "id is null")
-    Integer id;
+    private Integer id;
 
     /**
      * Пользователь.
      */
-    @NotNull(message = "Пользователь не должен быть null")
     private Integer idUser;
     /**
      * Дата начала предоставления услуг.
      */
-    @NotNull(message = "startDate не должна быть null")
-    private  LocalDateTime start;
-    private  @NotNull(message = "finish_date не должна быть null") LocalDateTime finish;
-    private  boolean reserved;
-    private  boolean complited;
-    private  @Positive(message = "cost должен быть положительным") BigDecimal cost;
-    private  @NotNull(message = "IdBox не должен быть null")
-    @Positive(message = "IdBox должен быть положительным") Integer idBox;
-    private Set<Integer> idServices = new HashSet<>();
+    private LocalDateTime start;
 
     /**
-     * @param id
-     * @param idUser
-     * @param start
-     * @param finish     Дата окончания предоставления услуг.
-     * @param reserved   Дата и время забронированы.
-     * @param complited  Услуги предоставлены.
-     * @param cost       Сотоимсоть услуг с учетом скидки
-     * @param idBox      Бокс.
-     * @param idServices Список выбранных услуг.
+     * Дата окончания предоставления услуг.
      */
+    private LocalDateTime finish;
+    /**
+     * Дата и время забронированы.
+     */
+    private boolean reserved;
+    /**
+     * Услуги предоставлены.
+     */
+    private boolean complited;
+    /**
+     * Стоимость услуг с учетом скидки.
+     */
+    private BigDecimal cost;
+    /**
+     * Идентификатор бокса
+     */
+    private Integer idBox;
+    /**
+     * Список выбранных услуг.
+     */
+    private Set<Integer> idServices = new HashSet<>();
 }

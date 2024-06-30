@@ -21,7 +21,6 @@ import java.util.List;
 @RequestMapping("/recordings")
 @Validated
 public class RecordingController {
-
     /**
      * Сервисный слой записи.
      */
@@ -37,6 +36,18 @@ public class RecordingController {
     @GetMapping("/profit")
     public BigDecimal getProfit(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO) {
         return recordingService.getProfit(rangeDataTimeDTO);
+    }
+
+    /**
+     * Возвращает список записей за диапазон даты, времени.
+     * Права доступа: ADMIN.
+     *
+     * @param rangeDataTimeDTO диапазон даты, времени
+     * @return список записей за диапазон даты, времени.
+     */
+    @GetMapping("/by-range-date-time")
+    public List<RecordingDTO> getAllRecordingsByDateTimeRange(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO) {
+        return recordingService.getAllRecordingsByRange(rangeDataTimeDTO);
     }
 
     /**
@@ -59,20 +70,18 @@ public class RecordingController {
      */
     @PutMapping("{id}/cancellation")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void cancellationRecordingById(@PathVariable("id") Integer id) {
+    public void cancellationRecording(@PathVariable("id") Integer id) {
         recordingService.cancellationReserveById(id);
     }
 
     /**
-     * Возвращает список записей за диапазон даты, времени.
-     * Права доступа: ADMIN.
-     *
-     * @param rangeDataTimeDTO диапазон даты, времени
-     * @return список записей за диапазон даты, времени.
+     * Подтверждает запись по ее идентификатору.
+     * @param id идентификатор записи
      */
-    @GetMapping("/by-range-date-time")
-    public List<RecordingDTO> getAllRecordingsByDateTimeRange(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO) {
-        return recordingService.getAllRecordingsByRange(rangeDataTimeDTO);
+    @PostMapping("/{id}/approve")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void approveRecording(@PathVariable(name = "id") Integer id) {
+        recordingService.approve(id);
     }
 
     /**
@@ -86,12 +95,6 @@ public class RecordingController {
     @ResponseStatus(HttpStatus.CREATED)
     public Integer createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO) {
         return recordingService.createRecordingByIdUser(recordingDTO);
-    }
-
-    @PostMapping("/{id}/approve")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public void approveRecording(@PathVariable(name = "id") Integer id) {
-        recordingService.approve(id);
     }
 
     /**

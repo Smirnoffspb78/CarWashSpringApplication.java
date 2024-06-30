@@ -20,9 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.ceil;
@@ -68,6 +70,18 @@ public class RecordingService {
                 .orElse(BigDecimal.valueOf(0.0));
     }
 
+    /**
+     * Возвращает список всех записей за диапазон даты, время.
+     *
+     * @param rangeDataTimeDTO Диапазон даты, времени
+     * @return Список записей
+     */
+    @Transactional(readOnly = true)
+    public List<RecordingDTO> getAllRecordingsByRange(RangeDataTimeDTO rangeDataTimeDTO) {
+        List<Recording> recordings = recordingRepository.findByStartBetween(rangeDataTimeDTO.start(), rangeDataTimeDTO.finish());
+        return getRecordingDTOS(recordings);
+    }
+
 
     /**
      * Отмечает запись, как завершенную, если она не завершена, по ее идентификатору.
@@ -81,18 +95,6 @@ public class RecordingService {
     }
 
     /**
-     * Возвращает список всех записей за диапазон даты, время.
-     *
-     * @param rangeDataTimeDTO Диапазон даты, времени
-     * @return Список записей
-     */
-    @Transactional(readOnly = true)
-    public List<RecordingDTO> getAllRecordingsByRange(RangeDataTimeDTO rangeDataTimeDTO) {
-        List<Recording> recordings = recordingRepository.findByStartBetween(rangeDataTimeDTO.start(), rangeDataTimeDTO.finish());
-        return getRecordingDTOS(recordings);
-    }
-
-    /**
      * Отменяет запись по ее идентификатору (удаляет, клиент больше не может ее подтвердить).
      *
      * @param id Идентификатор записи
@@ -101,6 +103,16 @@ public class RecordingService {
         Recording recording = getRecordingDTOByIdNotRemovedAndNotCompleted(id);
         recording.setReserved(false);
         recording.setRemoved(true);
+    }
+
+    /**
+     * Подтверждает запись по ее идентификатору.
+     * @param id Идентификатор записи
+     */
+    public void approve(Integer id) {
+        Recording recording = recordingRepository.findByIdAndReservedIsFalseAndRemovedIsFalse(id)
+                .orElseThrow(() -> new RecordingNotFoundException("Запись не найдена"));
+        recording.setReserved(true);
     }
 
     /**
@@ -286,23 +298,14 @@ public class RecordingService {
     @Transactional(readOnly = true)
     public List<RecordingReservedDTO> getAllActiveReserveByIdUse(Integer userId) {
         userService.checkUserById(userId);
-        List<Recording> recordings = recordingRepository.findAllByUser_IdAndReservedIsTrueAndCompletedIsFalse(userId);
-        return recordings.stream().map(
-                        recording -> RecordingReservedDTO.builder()
-                                .id(recording.getId())
-                                .start(recording.getStart())
-                                .finish(recording.getFinish())
-                                .cost(recording.getCost())
-                                .boxId(recording.getBox().getId())
-                                .services(recording.getServices())
-                                .build())
+        return recordingRepository.findAllByUser_IdAndReservedIsTrueAndCompletedIsFalse(userId).stream().map(recording -> {
+                    RecordingReservedDTO rsd = modelMapper.map(recording, RecordingReservedDTO.class);
+                    rsd.setServicesName(recording.getServices().stream()
+                            .map(CarWashService::getName)
+                            .collect(Collectors.toSet()));
+                    return rsd;
+                })
                 .toList();
-    }
-
-    public void approve(Integer id) {
-        Recording recording = recordingRepository.findByIdAndReservedIsFalseAndRemovedIsFalse(id)
-                .orElseThrow(()->new RecordingNotFoundException("Запись не найдена"));
-        recording.setReserved(true);
     }
 
     /**
@@ -314,14 +317,8 @@ public class RecordingService {
     @Transactional(readOnly = true)
     public List<RecordingComplitedDTO> getAllComplitedRecordingByUserId(Integer userId) {
         List<Recording> recordings = recordingRepository.findAllByUser_IdAndCompletedIsTrue(userId);
-        return recordings.stream().map(r -> RecordingComplitedDTO.builder()
-                        .id(r.getId())
-                        .cost(r.getCost())
-                        .timeComplite(Duration.between(r.getStart(), r.getFinish()).toMinutes())
-                        .servicesName(r.getServices().stream()
-                                .map(CarWashService::getName)
-                                .collect(Collectors.toSet()))
-                        .build())
+        return recordings.stream()
+                .map(r -> modelMapper.map(r, RecordingComplitedDTO.class))
                 .toList();
     }
 
@@ -339,6 +336,12 @@ public class RecordingService {
         return getRecordingDTOS(recordings);
     }
 
+    /**
+     * Преобразует список записей Entity в список записей DTO
+     *
+     * @param recordings Список записей Entity
+     * @return Список записей DTO
+     */
     public List<RecordingDTO> getRecordingDTOS(List<Recording> recordings) {
         return recordings.stream().map(
                 recording -> {

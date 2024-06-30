@@ -1,5 +1,6 @@
 package com.smirnov.carwashspring.controller;
 
+import com.smirnov.carwashspring.dto.request.create.CarWashServiceCreateDTO;
 import com.smirnov.carwashspring.dto.response.get.CarWashServiceDTO;
 import com.smirnov.carwashspring.service.CarWashServiceService;
 import jakarta.validation.Valid;
@@ -23,13 +24,10 @@ import java.util.List;
 @RequestMapping("/services")
 @Slf4j
 public class CarWashServiceController {
-
-
     /**
      * Сервисный слой услуг.
      */
     private final CarWashServiceService carWashServiceService;
-
 
     /**
      * Возвращает список всех услуг из БД в формате JSON.
@@ -51,7 +49,7 @@ public class CarWashServiceController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Integer createService(@RequestBody @Valid CarWashServiceDTO serviceDTO) {
+    public Integer createService(@RequestBody @Valid CarWashServiceCreateDTO serviceDTO) {
         return carWashServiceService.save(serviceDTO);
     }
 }

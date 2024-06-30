@@ -30,30 +30,34 @@ public class RangeLocalDateTimeValidator implements ConstraintValidator<RangeDat
         }
         if (value instanceof RangeDataTimeDTO rangeDataTimeDTO) {
             if (rangeDataTimeDTO.start() == null || rangeDataTimeDTO.finish() == null) {
-                log.error("RangeDataTimeDTO or components is null");
-                context.disableDefaultConstraintViolation();
-                return false;
+                return messageNull(context);
             }
             if (rangeDataTimeDTO.start().isAfter(rangeDataTimeDTO.finish())) {
-                log.error(message);
-                context.disableDefaultConstraintViolation();
-                return false;
+                return messageInvalid(context);
             }
             return true;
         }
         if (value instanceof BoxCreateDTO rangeTimeDTO) {
             if (rangeTimeDTO.getStart() == null || rangeTimeDTO.getFinish() == null) {
-                log.error("RangeDataTimeDTO or components is null");
-                context.disableDefaultConstraintViolation();
-                return false;
+                return messageNull(context);
             }
             if (rangeTimeDTO.getStart().isAfter(rangeTimeDTO.getFinish())) {
-                log.error(message);
-                context.disableDefaultConstraintViolation();
-                return false;
+                return messageInvalid(context);
             }
             return true;
         }
+        return false;
+    }
+    
+    private boolean messageNull(ConstraintValidatorContext context){
+        log.error("RangeDataTimeDTO or components is null");
+        context.disableDefaultConstraintViolation();
+        return false;
+    }
+
+    private boolean messageInvalid(ConstraintValidatorContext context){
+        log.error(message);
+        context.disableDefaultConstraintViolation();
         return false;
     }
 }

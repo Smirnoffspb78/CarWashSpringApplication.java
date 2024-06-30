@@ -117,7 +117,7 @@ public class UserController {
      * @param userId Идентификатор пользователя
      * @return Список забронированных записей
      */
-    @GetMapping("{id}/reserved")
+    @GetMapping("{id}/records-reserved")
     public List<RecordingReservedDTO> getAllActiveReserveByUserId(@PathVariable("id") Integer userId) {
         return recordingService.getAllActiveReserveByIdUse(userId);
     }
@@ -128,7 +128,7 @@ public class UserController {
      * @param userId Идентификатор пользователя
      * @return Список выполненных записей
      */
-    @GetMapping("/{id}/complited")
+    @GetMapping("/{id}/records-complited")
     public List<RecordingComplitedDTO> getAllComplitedByUserId(@PathVariable("id") Integer userId) {
         return recordingService.getAllComplitedRecordingByUserId(userId);
     }

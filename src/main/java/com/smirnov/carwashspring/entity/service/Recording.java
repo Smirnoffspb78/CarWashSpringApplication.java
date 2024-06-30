@@ -53,7 +53,7 @@ public class Recording {
     /**
      * Дата начала предоставления услуг.
      */
-    @NotNull(message = "start не должнен быть null")
+    @NotNull(message = "start не должен быть null")
     @Future(message = "start должна быть в будущем", groups = RangeDateTimeGroupValidation.class)
     @Column(name = "start")
     private LocalDateTime start;

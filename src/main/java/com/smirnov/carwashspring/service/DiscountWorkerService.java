@@ -1,7 +1,7 @@
 package com.smirnov.carwashspring.service;
 
 import com.smirnov.carwashspring.entity.users.DiscountWorker;
-import com.smirnov.carwashspring.exception.UserNotFoundException;
+import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.repository.DiscountWorkerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,6 +33,6 @@ public class DiscountWorkerService {
      */
     public DiscountWorker getDiscountWorkerById(Integer id) {
         return discountWorkerRepository.findById(id)
-                .orElseThrow(()-> new UserNotFoundException("Discount Worker Not Found"));
+                .orElseThrow(()-> new EntityNotFoundException(DiscountWorker.class, id));
     }
 }

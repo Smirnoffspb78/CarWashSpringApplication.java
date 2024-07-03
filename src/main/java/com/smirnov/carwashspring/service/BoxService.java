@@ -3,8 +3,9 @@ package com.smirnov.carwashspring.service;
 import com.smirnov.carwashspring.dto.response.get.RecordingDTO;
 import com.smirnov.carwashspring.dto.request.create.BoxCreateDTO;
 import com.smirnov.carwashspring.entity.service.Box;
-import com.smirnov.carwashspring.exception.BoxNotFountException;
+import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.repository.BoxRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.List;
  */
 @Service
 @Transactional
+@Slf4j
 public class BoxService {
 
     /**
@@ -41,7 +43,9 @@ public class BoxService {
      */
     public Integer save(BoxCreateDTO boxCreateDto) {
         Box box = modelMapper.map(boxCreateDto, Box.class);
-        return boxRepository.save(box).getId();
+        Integer boxId = boxRepository.save(box).getId();
+        log.info("Box save in db_car_wash with id: %d".formatted(boxId));
+        return boxId;
     }
 
 
@@ -52,10 +56,13 @@ public class BoxService {
      */
     @Transactional(readOnly = true)
     public List<RecordingDTO> getAllRecordingById(Integer id) {
-        return recordingService.getRecordingDTOS(boxRepository.findById(id)
-                .orElseThrow(() -> new BoxNotFountException("box not found Exception"))
+        List<RecordingDTO> recordingDTOS =  recordingService.getRecordingDTOS(boxRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Box with id %d not found".formatted(id));
+                    return new EntityNotFoundException(Box.class, id);})
                 .getRecordings());
-
+        log.info("Получен список всех записей по идентификатору бокса");
+        return recordingDTOS;
     }
 
     /**
@@ -64,7 +71,7 @@ public class BoxService {
      */
     public void checkBoxById(Integer id) {
         if (!boxRepository.existsById(id)) {
-            throw new BoxNotFountException("Бокс с id " + id + " не найден");
+            throw new EntityNotFoundException(Box.class, id);
         }
     }
 

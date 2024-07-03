@@ -7,8 +7,8 @@ import com.smirnov.carwashspring.entity.users.DiscountWorker;
 import com.smirnov.carwashspring.entity.users.Role;
 import com.smirnov.carwashspring.entity.users.RolesUser;
 import com.smirnov.carwashspring.entity.users.User;
+import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.exception.LoginNotFoundException;
-import com.smirnov.carwashspring.exception.UserNotFoundException;
 import com.smirnov.carwashspring.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -148,7 +148,7 @@ public class UserService {
     
     public User getUserById(Integer id) {
         return userRepository.findByIdAndDeletedIsFalse(id)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с id %d не найден".formatted(id)));
+                .orElseThrow(() -> new EntityNotFoundException(User.class, id));
     }
     public User getUserByIdAndRole(Integer id, Role role) {
         return userRepository.findByIdAndRoleAndDeletedIsFalse(id, role).
@@ -157,7 +157,7 @@ public class UserService {
 
     public void checkUserById (Integer id){
         if (!userRepository.existsById(id)){
-            throw new UserNotFoundException("Пользователь с таким id не найден");
+            throw new EntityNotFoundException(User.class, id);
         }
     }
 }

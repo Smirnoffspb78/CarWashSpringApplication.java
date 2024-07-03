@@ -1,0 +1,45 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: carwashSpring
+  datasource:
+    url: jdbc:postgresql://localhost:5432/db_car_wash
+    username: ${LOGIN POSTGRE}
+    password: ${PASSWORD_POSTGRE}
+  jpa:
+    show: true
+    hibernate:
+      ddl-auto:
+        validate
+    open-in-view: true
+
+  mail:
+    username: ${LOGIN_MAIL}
+    password: ${PASSWORD_MAIL}
+    port: 587
+    host: smtp.yandex.ru
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+
+
+source:
+  driver-class-name: org.postgresql.Driver
+
+logging:
+  level:
+    root: INFO
+  file:
+    name: LogCarWash
+  
+
+
+
+
+
+

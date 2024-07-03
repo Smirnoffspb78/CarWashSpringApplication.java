@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class CarWashSpringApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(CarWashSpringApplication.class, args);
+        SpringApplication.run(CarWashSpringApplication.class, args).getApplicationStartup();
     }
-
 }

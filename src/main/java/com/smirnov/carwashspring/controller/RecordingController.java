@@ -6,6 +6,7 @@ import com.smirnov.carwashspring.dto.range.RangeDataTimeDTO;
 import com.smirnov.carwashspring.service.RecordingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/recordings")
+@Slf4j
 @Validated
 public class RecordingController {
     /**
@@ -43,6 +45,7 @@ public class RecordingController {
      */
     @GetMapping("/profit")
     public BigDecimal getProfit(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO) {
+        log.info("GET: /profit");
         return recordingService.getProfit(rangeDataTimeDTO);
     }
 
@@ -55,6 +58,7 @@ public class RecordingController {
      */
     @GetMapping("/by-range-date-time")
     public List<RecordingDTO> getAllRecordingsByDateTimeRange(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO) {
+        log.info("GET: /recordings/by-range-date-time");
         return recordingService.getAllRecordingsByRange(rangeDataTimeDTO);
     }
 
@@ -64,9 +68,10 @@ public class RecordingController {
      *
      * @param id Идентификатор записи
      */
-    @PutMapping("/{id}/complited")
+    @PutMapping("/{id}/completed")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateRecordComplite(@PathVariable(name = "id") Integer id) {
+    public void updateRecordCompleted(@PathVariable(name = "id") Integer id) {
+        log.info("PUT: /recordings/{}/completed/", id);
         recordingService.updateCompliteById(id);
     }
 
@@ -79,6 +84,7 @@ public class RecordingController {
     @PutMapping("{id}/cancellation")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void cancellationRecording(@PathVariable("id") Integer id) {
+        log.info("PUT: /recordings/{}/cancellation", id);
         recordingService.cancellationReserveById(id);
     }
 
@@ -89,6 +95,7 @@ public class RecordingController {
     @PostMapping("/{id}/approve")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void approveRecording(@PathVariable(name = "id") Integer id) {
+        log.info("POST: /recordings/{}/approve", id);
         recordingService.approve(id);
     }
 
@@ -102,6 +109,7 @@ public class RecordingController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Integer createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO) {
+        log.info("POST: /recordings");
         return recordingService.createRecordingByIdUser(recordingDTO);
     }
 
@@ -114,6 +122,7 @@ public class RecordingController {
     @PutMapping("/{id}/update")
     public void updateRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO,
                                    @PathVariable(name = "id") Integer id) {
+        log.info("PUT: /recordings/update");
         recordingService.updateRecording(id, recordingDTO);
     }
 }

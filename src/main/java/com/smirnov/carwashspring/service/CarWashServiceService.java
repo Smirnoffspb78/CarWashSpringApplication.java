@@ -3,7 +3,7 @@ package com.smirnov.carwashspring.service;
 import com.smirnov.carwashspring.dto.request.create.CarWashServiceCreateDTO;
 import com.smirnov.carwashspring.dto.response.get.CarWashServiceDTO;
 import com.smirnov.carwashspring.entity.service.CarWashService;
-import com.smirnov.carwashspring.exception.ServiceNotFoundException;
+import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.repository.CarWashServiceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ public class CarWashServiceService {
 
     @Transactional(readOnly = true)
     public List<CarWashServiceDTO> getAllServices() {
-        log.info("getAllServices");
+        log.info("Просмотрены все предоставляемые услуги");
         return carWashServiceRepository.findAll().stream()
                 .map(service -> modelMapper.map(service, CarWashServiceDTO.class))
                 .toList();
@@ -49,8 +49,11 @@ public class CarWashServiceService {
      * @param serviceDTO Услуга
      */
     public Integer save(CarWashServiceCreateDTO serviceDTO) {
-        CarWashService carWashService = modelMapper.map(serviceDTO, CarWashService.class);
-        return carWashServiceRepository.save(carWashService).getId();
+
+            CarWashService carWashService = modelMapper.map(serviceDTO, CarWashService.class);
+            Integer carWashServiceId = carWashServiceRepository.save(carWashService).getId();
+            log.info("Добавлена новая услуга с id: {}", carWashServiceId);
+            return carWashServiceId;
     }
 
     /**
@@ -60,6 +63,6 @@ public class CarWashServiceService {
      * @return Услуга
      */
     public CarWashService getServiceById(Integer id) {
-        return carWashServiceRepository.findById(id).orElseThrow(() -> new ServiceNotFoundException("Сервис с id не существует"));
+        return carWashServiceRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(CarWashService.class, id));
     }
 }

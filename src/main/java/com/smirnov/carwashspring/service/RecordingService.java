@@ -9,7 +9,7 @@ import com.smirnov.carwashspring.entity.service.Box;
 import com.smirnov.carwashspring.entity.service.Recording;
 import com.smirnov.carwashspring.entity.service.CarWashService;
 import com.smirnov.carwashspring.entity.users.User;
-import com.smirnov.carwashspring.exception.RecordingNotFoundException;
+import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.repository.RecordingRepository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -120,7 +120,7 @@ public class RecordingService {
      */
     public void approve(Integer id) {
         Recording recording = recordingRepository.findByIdAndReservedIsFalseAndRemovedIsFalse(id)
-                .orElseThrow(() -> new RecordingNotFoundException("Запись не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
         recording.setReserved(true);
     }
 
@@ -258,7 +258,7 @@ public class RecordingService {
      */
     public Recording getRecordingDTOByIdNotRemovedAndNotCompleted(Integer id) {
         return recordingRepository.findByIdAndRemovedIsFalseAndCompletedIsFalse(id)
-                .orElseThrow(() -> new RecordingNotFoundException("запись c id %d отсутствует".formatted(id)));
+                .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
     }
 
     private RecordingInBox getBoxRecord(Set<CarWashService> services, RecordingCreateDTO recordingDTO, Integer id, Action action){

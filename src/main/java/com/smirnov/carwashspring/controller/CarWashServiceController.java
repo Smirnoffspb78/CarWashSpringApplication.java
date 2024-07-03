@@ -50,6 +50,7 @@ public class CarWashServiceController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Integer createService(@RequestBody @Valid CarWashServiceCreateDTO serviceDTO) {
+        log.info("POST /services");
         return carWashServiceService.save(serviceDTO);
     }
 }

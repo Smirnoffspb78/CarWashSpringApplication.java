@@ -9,10 +9,19 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -24,6 +33,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 @Validated
+@Slf4j
 public class UserController {
     /**
      * Сервисный слой пользователя.
@@ -41,6 +51,7 @@ public class UserController {
     @PutMapping("{id}/user-before-operator")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateUserBeforeOperator(@PathVariable(name = "id") Integer id) {
+        log.info("PUT: /users/{}/user-before-operator", id);
         userService.updateUserBeforeOperator(id);
     }
 
@@ -59,6 +70,7 @@ public class UserController {
                                       @Range(min = 0, max = 100, message = "Скидка должна быть в диапазоне от 0 до 100")
                                       int discount,
                                       @PathVariable(name = "typeDiscount") @NotNull String typeDiscount) {
+        log.info("PUT: /users");
         userService.updateDiscountForUser(id, discount, typeDiscount);
     }
 
@@ -74,6 +86,7 @@ public class UserController {
     public void activateDiscountUser(@PathVariable(name = "discount") @Positive(message = "discount должен быть положительным") int discount,
                                      @PathVariable(name = "id") Integer idUser,
                                      @PathVariable(name = "idOperatorOrAdmin") Integer idOperatorOrAdmin) {
+        log.info("PUT: /users/{}/{}/{}", idUser, idOperatorOrAdmin, discount);
         userService.activateDiscount(discount, idOperatorOrAdmin, idUser);
     }
 
@@ -85,6 +98,7 @@ public class UserController {
     @PutMapping("{id}/deactivate-discount")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void deactivateDiscountUser(@PathVariable(name = "id") Integer id) {
+        log.info("PUT /users/{}/deactivate-discount", id);
         userService.deactivateDiscount(id);
     }
 
@@ -97,6 +111,7 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Integer addUser(@RequestBody @Valid UserCreateDTO userCreateDTO) {
+        log.info("POST /users");
         return userService.createUser(userCreateDTO);
     }
 
@@ -108,6 +123,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable(name = "id") Integer  id) {
+        log.info("DELETE: /users/{}", id);
         userService.deleteUser(id);
     }
 
@@ -119,6 +135,7 @@ public class UserController {
      */
     @GetMapping("{id}/records-reserved")
     public List<RecordingReservedDTO> getAllActiveReserveByUserId(@PathVariable("id") Integer userId) {
+        log.info("GET: /users/{}/records-reserved", userId);
         return recordingService.getAllActiveReserveByIdUse(userId);
     }
 
@@ -128,8 +145,9 @@ public class UserController {
      * @param userId Идентификатор пользователя
      * @return Список выполненных записей
      */
-    @GetMapping("/{id}/records-complited")
-    public List<RecordingComplitedDTO> getAllComplitedByUserId(@PathVariable("id") Integer userId) {
+    @GetMapping("/{id}/records-completed")
+    public List<RecordingComplitedDTO> getAllCompletedByUserId(@PathVariable("id") Integer userId) {
+        log.info("GET /users/{userId}/records-completed");
         return recordingService.getAllComplitedRecordingByUserId(userId);
     }
 }

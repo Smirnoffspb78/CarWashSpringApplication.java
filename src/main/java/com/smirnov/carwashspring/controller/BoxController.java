@@ -7,6 +7,7 @@ import com.smirnov.carwashspring.service.BoxService;
 import com.smirnov.carwashspring.service.RecordingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/boxes")
+@Slf4j
 public class BoxController {
 
     /**
@@ -43,6 +45,7 @@ public class BoxController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Integer addBox(@RequestBody @Valid BoxCreateDTO boxCreateDto) {
+        log.info("POST /boxes");
         return boxService.save(boxCreateDto);
     }
 
@@ -55,6 +58,7 @@ public class BoxController {
      */
     @GetMapping("/{id}/recordings")
     public List<RecordingDTO> getRecordingsById(@PathVariable("id") Integer id) {
+        log.info("GET /recordings/{}", id);
         return boxService.getAllRecordingById(id);
     }
 
@@ -63,12 +67,13 @@ public class BoxController {
      * Права доступа: ADMIN, OPERATOR(если работает в этом боксе).
      *
      * @param rangeDataTimeDTO Диапазон даты, времени
-     * @param boxId            - Идентификатор бокса
+     * @param boxId            Идентификатор бокса
      * @return Список записей за диапазон даты, времени.
      */
     @GetMapping("{id}/by-range-date-time/")
     public List<RecordingDTO> getAllRecordingsByDateTimeRangeAndBoxId(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO,
                                                                       @PathVariable("id") Integer boxId) {
+        log.info("GET /recordings/{}/by-range-date-time/", boxId);
         return recordingService.getAllRecordingsByRangeAndIdBox(rangeDataTimeDTO, boxId);
     }
 }

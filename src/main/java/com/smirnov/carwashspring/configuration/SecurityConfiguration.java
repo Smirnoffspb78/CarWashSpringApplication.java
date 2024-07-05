@@ -65,8 +65,6 @@ public class SecurityConfiguration {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests((authz) -> authz
-                        //.requestMatchers(HttpMethod.GET, "/services")
-                        //.hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/services")
                         .hasAnyRole("ADMIN")
                         .anyRequest().authenticated()

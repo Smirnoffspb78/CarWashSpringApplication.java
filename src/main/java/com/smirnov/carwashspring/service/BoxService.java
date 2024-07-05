@@ -74,6 +74,7 @@ public class BoxService {
      */
     public void checkBoxById(Integer id) {
         if (!boxRepository.existsById(id)) {
+            log.error("Box с id {} не найден", id);
             throw new EntityNotFoundException(Box.class, id);
         }
     }

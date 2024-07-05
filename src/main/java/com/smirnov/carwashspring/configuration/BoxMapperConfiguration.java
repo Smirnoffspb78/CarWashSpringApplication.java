@@ -28,7 +28,7 @@ public class BoxMapperConfiguration {
     public void configure() {
         modelMapper.typeMap(BoxCreateDTO.class, Box.class)
                 .addMappings(mapping -> mapping.using((MappingContext<Integer, User> context) ->
-                        userRepository.findByIdAndRoleAndDeletedIsFalse(context.getSource(), new Role(RolesUser.OPERATOR))
+                        userRepository.findByIdAndRoleAndDeletedIsFalse(context.getSource(), new Role(RolesUser.ROLE_OPERATOR))
                                 .orElseThrow(() -> {
                                     log.error("Оператор с id %d не найден".formatted(context.getSource()));
                                     return new EntityNotFoundException(User.class, context.getSource());})

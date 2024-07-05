@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,6 +45,7 @@ public class BoxController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Secured("ROLE_ADMIN")
     public Integer addBox(@RequestBody @Valid BoxCreateDTO boxCreateDto) {
         log.info("POST /boxes");
         return boxService.save(boxCreateDto);
@@ -57,6 +59,7 @@ public class BoxController {
      * @return список записей бокса
      */
     @GetMapping("/{id}/recordings")
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public List<RecordingDTO> getRecordingsById(@PathVariable("id") Integer id) {
         log.info("GET /recordings/{}", id);
         return boxService.getAllRecordingById(id);
@@ -71,6 +74,7 @@ public class BoxController {
      * @return Список записей за диапазон даты, времени.
      */
     @GetMapping("{id}/by-range-date-time/")
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public List<RecordingDTO> getAllRecordingsByDateTimeRangeAndBoxId(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO,
                                                                       @PathVariable("id") Integer boxId) {
         log.info("GET /recordings/{}/by-range-date-time/", boxId);

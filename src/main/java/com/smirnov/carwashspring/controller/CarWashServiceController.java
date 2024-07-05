@@ -38,7 +38,7 @@ public class CarWashServiceController {
      * @return Список услуг
      */
     @GetMapping
-    @Secured({"ROLE_ADMIN", "ROLE_USER, ROLE_OPERATOR"})
+    @Secured({"ROLE_ADMIN", "ROLE_USER", "ROLE_OPERATOR"})
     public List<CarWashServiceDTO> getAllService() {
         log.info("GET /services");
         return carWashServiceService.getAllServices();
@@ -52,6 +52,7 @@ public class CarWashServiceController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Secured("ROLE_ADMIN")
     public Integer createService(@RequestBody @Valid CarWashServiceCreateDTO serviceDTO) {
         log.info("POST /services");
         return carWashServiceService.save(serviceDTO);

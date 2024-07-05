@@ -51,10 +51,10 @@ public class UserService {
      */
     @Transactional
     public void updateUserBeforeOperator(Integer id) {
-        User user = getUserByIdAndRole(id, new Role(RolesUser.USER));
+        User user = getUserByIdAndRole(id, new Role(RolesUser.ROLE_USER));
         DiscountWorker discountWorker = new DiscountWorker();
         discountWorker.setUser(user);
-        user.setRole(new Role(RolesUser.OPERATOR));
+        user.setRole(new Role(RolesUser.ROLE_OPERATOR));
         discountWorkerService.saveDiscountWorker(discountWorker);
     }
 
@@ -100,7 +100,7 @@ public class UserService {
             throw new LoginNotFoundException("login уже занят");
         }
         User user = modelMapper.map(userCreateDTO, User.class);
-        user.setRole(new Role(RolesUser.USER));
+        user.setRole(new Role(RolesUser.ROLE_USER));
         return userRepository.save(user).getId();
     }
 

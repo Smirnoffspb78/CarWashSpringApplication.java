@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,12 +45,13 @@ public class UserController {
 
     /**
      * Выдает пользователю права доступа оператора.
-     * Права доступа: Admin
+     * Права доступа: ADMIN.
      *
      * @param id Идентификатор
      */
     @PutMapping("{id}/user-before-operator")
     @ResponseStatus(HttpStatus.ACCEPTED)
+    @Secured("ROLE_ADMIN")
     public void updateUserBeforeOperator(@PathVariable(name = "id") Integer id) {
         log.info("PUT: /users/{}/user-before-operator", id);
         userService.updateUserBeforeOperator(id);
@@ -65,12 +67,13 @@ public class UserController {
      */
     @PutMapping("{id}/{discount-for-user}/{typeDiscount}")
     @ResponseStatus(HttpStatus.ACCEPTED)
+    @Secured("ROLE_ADMIN")
     public void updateDiscountForUser(@PathVariable(name = "id") Integer id,
                                       @PathVariable (name = "discount-for-user")
                                       @Range(min = 0, max = 100, message = "Скидка должна быть в диапазоне от 0 до 100")
                                       int discount,
                                       @PathVariable(name = "typeDiscount") @NotNull String typeDiscount) {
-        log.info("PUT: /users");
+        log.info("PUT: /users/{}/{}/{}", id, discount, typeDiscount);
         userService.updateDiscountForUser(id, discount, typeDiscount);
     }
 
@@ -83,6 +86,7 @@ public class UserController {
      */
     @PutMapping("/{id}/{idOperatorOrAdmin}/{discount}")
     @ResponseStatus(HttpStatus.ACCEPTED)
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public void activateDiscountUser(@PathVariable(name = "discount") @Positive(message = "discount должен быть положительным") int discount,
                                      @PathVariable(name = "id") Integer idUser,
                                      @PathVariable(name = "idOperatorOrAdmin") Integer idOperatorOrAdmin) {
@@ -97,6 +101,7 @@ public class UserController {
      */
     @PutMapping("{id}/deactivate-discount")
     @ResponseStatus(HttpStatus.ACCEPTED)
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public void deactivateDiscountUser(@PathVariable(name = "id") Integer id) {
         log.info("PUT /users/{}/deactivate-discount", id);
         userService.deactivateDiscount(id);
@@ -120,10 +125,11 @@ public class UserController {
      * Права доступа: USER с удаляемым id.
      * @param id Идентификатор пользователя
      */
-    @DeleteMapping("/{id}")
+    @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Secured("ROLE_USER")
     public void deleteUser(@PathVariable(name = "id") Integer  id) {
-        log.info("DELETE: /users/{}", id);
+        log.info("PUT: /users/{}", id);
         userService.deleteUser(id);
     }
 
@@ -134,6 +140,7 @@ public class UserController {
      * @return Список забронированных записей
      */
     @GetMapping("{id}/records-reserved")
+    @Secured("ROLE_USER")
     public List<RecordingReservedDTO> getAllActiveReserveByUserId(@PathVariable("id") Integer userId) {
         log.info("GET: /users/{}/records-reserved", userId);
         return recordingService.getAllActiveReserveByIdUse(userId);
@@ -146,6 +153,7 @@ public class UserController {
      * @return Список выполненных записей
      */
     @GetMapping("/{id}/records-completed")
+    @Secured("ROLE_USER")
     public List<RecordingComplitedDTO> getAllCompletedByUserId(@PathVariable("id") Integer userId) {
         log.info("GET /users/{userId}/records-completed");
         return recordingService.getAllComplitedRecordingByUserId(userId);

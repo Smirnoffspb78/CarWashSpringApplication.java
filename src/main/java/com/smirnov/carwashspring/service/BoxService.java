@@ -51,15 +51,17 @@ public class BoxService {
 
     /**
      * Возвращает список записей по идентификатору бокса
+     *
      * @param id Идентификатор бокса.
      * @return Список записей.
      */
     @Transactional(readOnly = true)
     public List<RecordingDTO> getAllRecordingById(Integer id) {
-        List<RecordingDTO> recordingDTOS =  recordingService.getRecordingDTOS(boxRepository.findById(id)
+        List<RecordingDTO> recordingDTOS = recordingService.getRecordingDTOS(boxRepository.findById(id)
                 .orElseThrow(() -> {
                     log.error("Box with id %d not found".formatted(id));
-                    return new EntityNotFoundException(Box.class, id);})
+                    return new EntityNotFoundException(Box.class, id);
+                })
                 .getRecordings());
         log.info("Получен список всех записей по идентификатору бокса");
         return recordingDTOS;
@@ -67,6 +69,7 @@ public class BoxService {
 
     /**
      * Проверяет наличие бокса по его идентификатору
+     *
      * @param id Идентификатор бокса.
      */
     public void checkBoxById(Integer id) {
@@ -77,9 +80,12 @@ public class BoxService {
 
     /**
      * Возвращает список всех боксов.
+     *
      * @return Список боксов.
      */
     public List<Box> getAllBoxes() {
-        return boxRepository.findAll();
+        List<Box> boxes = boxRepository.findAll();
+        log.info("Получен список всех боксов");
+        return boxes;
     }
 }

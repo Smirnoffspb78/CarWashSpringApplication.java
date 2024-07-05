@@ -38,5 +38,12 @@ public interface UserRepository extends CrudRepository<User, Integer> {
      */
     Optional<User> findByIdAndDeletedIsFalse(Integer id);
 
+    /**
+     * Возвращает пользователя по логину, если он не удален.
+     * @param login Логин
+     * @return Пользователь
+     */
+    Optional<User> findByLoginAndDeletedIsFalse(String login);
+
 
 }

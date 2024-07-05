@@ -37,10 +37,11 @@ public class CarWashServiceService {
 
     @Transactional(readOnly = true)
     public List<CarWashServiceDTO> getAllServices() {
-        log.info("Просмотрены все предоставляемые услуги");
-        return carWashServiceRepository.findAll().stream()
+        List<CarWashServiceDTO> carWashServiceDTOS = carWashServiceRepository.findAll().stream()
                 .map(service -> modelMapper.map(service, CarWashServiceDTO.class))
                 .toList();
+        log.info("Просмотрены все предоставляемые услуги");
+        return carWashServiceDTOS;
     }
 
     /**
@@ -50,10 +51,10 @@ public class CarWashServiceService {
      */
     public Integer save(CarWashServiceCreateDTO serviceDTO) {
 
-            CarWashService carWashService = modelMapper.map(serviceDTO, CarWashService.class);
-            Integer carWashServiceId = carWashServiceRepository.save(carWashService).getId();
-            log.info("Добавлена новая услуга с id: {}", carWashServiceId);
-            return carWashServiceId;
+        CarWashService carWashService = modelMapper.map(serviceDTO, CarWashService.class);
+        Integer carWashServiceId = carWashServiceRepository.save(carWashService).getId();
+        log.info("Добавлена новая услуга с id: {}", carWashServiceId);
+        return carWashServiceId;
     }
 
     /**
@@ -63,6 +64,8 @@ public class CarWashServiceService {
      * @return Услуга
      */
     public CarWashService getServiceById(Integer id) {
-        return carWashServiceRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(CarWashService.class, id));
+        CarWashService carWashService = carWashServiceRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(CarWashService.class, id));
+        log.info("Получена услуга с id: {}", id);
+        return carWashService;
     }
 }

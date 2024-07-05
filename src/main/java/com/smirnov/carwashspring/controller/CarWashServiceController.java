@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,6 +38,7 @@ public class CarWashServiceController {
      * @return Список услуг
      */
     @GetMapping
+    @Secured({"ROLE_ADMIN", "ROLE_USER, ROLE_OPERATOR"})
     public List<CarWashServiceDTO> getAllService() {
         log.info("GET /services");
         return carWashServiceService.getAllServices();

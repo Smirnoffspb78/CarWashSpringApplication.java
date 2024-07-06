@@ -173,7 +173,7 @@ public class RecordingService {
         //Проверяем, есть ли записи у юзера в это кроме той, что правим.
         LocalDateTime finishRecord = accessibleBox.getFinish();
         if (!recordingRepository.findByIdAndUserIdAndStartAndFinishAndRemovedIsFalse(user.getId(), recordingDTO.start(), finishRecord, id).isEmpty()) {
-            log.info("У пользователя с id %d уже есть записи на это время".formatted(user.getId()));
+            log.error("У пользователя с id {} уже есть записи на это время", user.getId());
             throw new IllegalArgumentException();
         }
         //Меняем

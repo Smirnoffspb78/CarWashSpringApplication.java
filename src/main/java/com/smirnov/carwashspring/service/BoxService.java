@@ -8,6 +8,7 @@ import com.smirnov.carwashspring.repository.BoxRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +45,7 @@ public class BoxService {
     public Integer save(BoxCreateDTO boxCreateDto) {
         Box box = modelMapper.map(boxCreateDto, Box.class);
         Integer boxId = boxRepository.save(box).getId();
-        log.info("Box save in db_car_wash with id: %d".formatted(boxId));
+        log.info("{}. Box save in db_car_wash with id: {}", HttpStatus.CREATED, boxId);
         return boxId;
     }
 
@@ -58,12 +59,9 @@ public class BoxService {
     @Transactional(readOnly = true)
     public List<RecordingDTO> getAllRecordingById(Integer id) {
         List<RecordingDTO> recordingDTOS = recordingService.getRecordingDTOS(boxRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Box with id %d not found".formatted(id));
-                    return new EntityNotFoundException(Box.class, id);
-                })
+                .orElseThrow(() -> new EntityNotFoundException(Box.class, id))
                 .getRecordings());
-        log.info("Получен список всех записей по идентификатору бокса");
+        log.info("{}. Получен список всех записей по идентификатору бокса", HttpStatus.OK);
         return recordingDTOS;
     }
 
@@ -74,7 +72,6 @@ public class BoxService {
      */
     public void checkBoxById(Integer id) {
         if (!boxRepository.existsById(id)) {
-            log.error("Box с id {} не найден", id);
             throw new EntityNotFoundException(Box.class, id);
         }
     }

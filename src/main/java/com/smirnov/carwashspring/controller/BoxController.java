@@ -61,7 +61,7 @@ public class BoxController {
     @GetMapping("/{id}/recordings")
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public List<RecordingDTO> getRecordingsById(@PathVariable("id") Integer id) {
-        log.info("GET /recordings/{}", id);
+        log.info("GET /boxes/recordings/{}", id);
         return boxService.getAllRecordingById(id);
     }
 
@@ -77,7 +77,7 @@ public class BoxController {
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public List<RecordingDTO> getAllRecordingsByDateTimeRangeAndBoxId(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO,
                                                                       @PathVariable("id") Integer boxId) {
-        log.info("GET /recordings/{}/by-range-date-time/", boxId);
+        log.info("GET /boxes/recordings/{}/by-range-date-time/", boxId);
         return recordingService.getAllRecordingsByRangeAndIdBox(rangeDataTimeDTO, boxId);
     }
 }

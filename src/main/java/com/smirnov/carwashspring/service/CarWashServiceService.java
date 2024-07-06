@@ -8,6 +8,7 @@ import com.smirnov.carwashspring.repository.CarWashServiceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +41,7 @@ public class CarWashServiceService {
         List<CarWashServiceDTO> carWashServiceDTOS = carWashServiceRepository.findAll().stream()
                 .map(service -> modelMapper.map(service, CarWashServiceDTO.class))
                 .toList();
-        log.info("Просмотрены все предоставляемые услуги");
+        log.info("{}. Получен весь список услуг", HttpStatus.OK);
         return carWashServiceDTOS;
     }
 
@@ -50,10 +51,9 @@ public class CarWashServiceService {
      * @param serviceDTO Услуга
      */
     public Integer save(CarWashServiceCreateDTO serviceDTO) {
-
         CarWashService carWashService = modelMapper.map(serviceDTO, CarWashService.class);
         Integer carWashServiceId = carWashServiceRepository.save(carWashService).getId();
-        log.info("Добавлена новая услуга с id: {}", carWashServiceId);
+        log.info("{}. Добавлена новая услуга с id: {}", HttpStatus.CREATED, carWashServiceId);
         return carWashServiceId;
     }
 

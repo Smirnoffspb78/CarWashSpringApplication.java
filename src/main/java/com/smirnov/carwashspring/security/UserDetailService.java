@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.service;
+package com.smirnov.carwashspring.security;
 
 import com.smirnov.carwashspring.entity.users.User;
 import com.smirnov.carwashspring.repository.UserRepository;

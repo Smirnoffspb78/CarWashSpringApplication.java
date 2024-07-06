@@ -50,8 +50,8 @@ public class User {
     /**
      * Пароль.
      */
-    @Pattern(regexp = "[A-z\\d!#$*]{8,200}",
-            message = "password может содержать латинские буквы, цифры и символы !#$*. Длин должны быть от 8 до 200 символов")
+    /*@Pattern(regexp = "[A-z\\d!#$*]{8,200}",
+            message = "password может содержать латинские буквы, цифры и символы !#$*. Длина должна быть от 8 до 200 символов")*/
     @Column(name = "password")
     private String password;
 

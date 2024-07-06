@@ -7,6 +7,7 @@ import com.smirnov.carwashspring.service.RecordingService;
 import com.smirnov.carwashspring.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,15 +15,7 @@ import org.hibernate.validator.constraints.Range;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -65,14 +58,16 @@ public class UserController {
      * @param discount     Скидка
      * @param typeDiscount тип скидки: max или min, иначе выбрасывается исключение
      */
-    @PutMapping("{id}/{discount-for-user}/{typeDiscount}")
+    @PutMapping("{id}/")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @Secured("ROLE_ADMIN")
     public void updateDiscountForUser(@PathVariable(name = "id") Integer id,
-                                      @PathVariable (name = "discount-for-user")
+                                      @RequestParam("discount-for-user")
                                       @Range(min = 0, max = 100, message = "Скидка должна быть в диапазоне от 0 до 100")
                                       int discount,
-                                      @PathVariable(name = "typeDiscount") @NotNull String typeDiscount) {
+                                      @RequestParam(name = "typeDiscount")
+                                          @Pattern(regexp = "max|min")
+                                          String typeDiscount) {
         log.info("PUT: /users/{}/{}/{}", id, discount, typeDiscount);
         userService.updateDiscountForUser(id, discount, typeDiscount);
     }
@@ -99,7 +94,7 @@ public class UserController {
      * Уровень доступа: ADMIN, OPERATOR
      * @param id Идентификатор пользователя
      */
-    @PutMapping("{id}/deactivate-discount")
+    @PutMapping("/{id}/deactivate-discount")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public void deactivateDiscountUser(@PathVariable(name = "id") Integer id) {
@@ -139,7 +134,7 @@ public class UserController {
      * @param userId Идентификатор пользователя
      * @return Список забронированных записей
      */
-    @GetMapping("{id}/records-reserved")
+    @GetMapping("/{id}/records-reserved")
     @Secured("ROLE_USER")
     public List<RecordingReservedDTO> getAllActiveReserveByUserId(@PathVariable("id") Integer userId) {
         log.info("GET: /users/{}/records-reserved", userId);

@@ -11,7 +11,9 @@ import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.exception.LoginNotFoundException;
 import com.smirnov.carwashspring.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -22,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 @RequiredArgsConstructor
 @Service
 @Validated
+@Slf4j
 public class UserService {
 
     /**
@@ -75,17 +78,18 @@ public class UserService {
         switch (typeDiscountEnum) {
             case MIN -> {
                 if (discount > discountWorker.getMaxDiscountForUsers()) {
+                    log.error("minDiscountForUsers не должен быть больше, чем max. {}", HttpStatus.BAD_REQUEST);
                     throw new IllegalArgumentException("minDiscountForUsers не должен быть больше, чем max");
                 }
                 discountWorker.setMinDiscountForUsers(discount);
             }
             case MAX -> {
                 if (discount < discountWorker.getMinDiscountForUsers()) {
+                    log.error("minDiscountForUsers не должен быть больше, чем max. {}", HttpStatus.BAD_REQUEST);
                     throw new IllegalArgumentException("minDiscountForUsers не должен быть больше, чем max");
                 }
                 discountWorker.setMaxDiscountForUsers(discount);
             }
-            default -> throw new IllegalStateException("Unexpected value: " + typeDiscountEnum);
         }
     }
 

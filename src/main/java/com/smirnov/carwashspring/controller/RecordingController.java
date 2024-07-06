@@ -85,7 +85,7 @@ public class RecordingController {
      *
      * @param id Идентификатор записи
      */
-    @PutMapping("{id}/cancellation")
+    @PutMapping("/{id}/cancellation")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public void cancellationRecording(@PathVariable("id") Integer id) {

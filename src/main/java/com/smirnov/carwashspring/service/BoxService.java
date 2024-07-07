@@ -3,8 +3,12 @@ package com.smirnov.carwashspring.service;
 import com.smirnov.carwashspring.dto.response.get.RecordingDTO;
 import com.smirnov.carwashspring.dto.request.create.BoxCreateDTO;
 import com.smirnov.carwashspring.entity.service.Box;
+import com.smirnov.carwashspring.entity.users.RolesUser;
 import com.smirnov.carwashspring.exception.EntityNotFoundException;
+import com.smirnov.carwashspring.exception.ForbiddenAccessException;
 import com.smirnov.carwashspring.repository.BoxRepository;
+import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
+import com.smirnov.carwashspring.service.security.UserDetailsCustom;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
@@ -31,10 +35,13 @@ public class BoxService {
 
     private final ModelMapper modelMapper;
 
-    public BoxService(BoxRepository boxRepository, @Lazy RecordingService recordingService, ModelMapper modelMapper) {
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public BoxService(BoxRepository boxRepository, @Lazy RecordingService recordingService, ModelMapper modelMapper, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.boxRepository = boxRepository;
         this.recordingService = recordingService;
         this.modelMapper = modelMapper;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     /**
@@ -58,9 +65,9 @@ public class BoxService {
      */
     @Transactional(readOnly = true)
     public List<RecordingDTO> getAllRecordingById(Integer id) {
-        List<RecordingDTO> recordingDTOS = recordingService.getRecordingDTOS(boxRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(Box.class, id))
-                .getRecordings());
+        Box box = getBoxById(id);
+        checkAccessOperator(box);
+        List<RecordingDTO> recordingDTOS = recordingService.getRecordingDTOS(box.getRecordings());
         log.info("{}. Получен список всех записей по идентификатору бокса", HttpStatus.OK);
         return recordingDTOS;
     }
@@ -85,5 +92,16 @@ public class BoxService {
         List<Box> boxes = boxRepository.findAll();
         log.info("Получен список всех боксов");
         return boxes;
+    }
+
+    public Box getBoxById(Integer id) {
+        return boxRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(Box.class, id));
+    }
+
+    public void  checkAccessOperator(Box box){
+        UserDetailsCustom userDetails = jwtAuthenticationFilter.getAuthUser();
+        if (userDetails.getRolesUser().equals(RolesUser.ROLE_OPERATOR) && (!userDetails.getId().equals(box.getUser().getId()))) {
+            throw new ForbiddenAccessException(userDetails.getId());
+        }
     }
 }

@@ -1,12 +1,9 @@
 package com.smirnov.carwashspring.controller;
 
 import com.smirnov.carwashspring.dto.response.get.RecordingReservedDTO;
-import com.smirnov.carwashspring.dto.request.create.UserCreateDTO;
 import com.smirnov.carwashspring.dto.response.get.RecordingComplitedDTO;
 import com.smirnov.carwashspring.service.RecordingService;
 import com.smirnov.carwashspring.service.UserService;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -103,19 +100,6 @@ public class UserController {
     }
 
     /**
-     * Добавляет нового пользователя в систему.
-     * Права доступа: Анонимный пользователь.
-     *
-     * @param userCreateDTO параметры пользователя
-     */
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Integer addUser(@RequestBody @Valid UserCreateDTO userCreateDTO) {
-        log.info("POST /users");
-        return userService.createUser(userCreateDTO);
-    }
-
-    /**
      * Удаляет пользователя из базы.
      * Права доступа: USER с удаляемым id.
      * @param id Идентификатор пользователя
@@ -151,6 +135,6 @@ public class UserController {
     @Secured("ROLE_USER")
     public List<RecordingComplitedDTO> getAllCompletedByUserId(@PathVariable("id") Integer userId) {
         log.info("GET /users/{userId}/records-completed");
-        return recordingService.getAllComplitedRecordingByUserId(userId);
+        return recordingService.getAllCompletedRecordingByUserId(userId);
     }
 }

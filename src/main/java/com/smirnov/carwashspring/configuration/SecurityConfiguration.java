@@ -1,11 +1,12 @@
 package com.smirnov.carwashspring.configuration;
 
 
-import com.smirnov.carwashspring.security.JwtAuthenticationFilter;
+import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -23,9 +24,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import javax.security.auth.login.AccountException;
 
-import static jakarta.servlet.DispatcherType.ERROR;
-import static jakarta.servlet.DispatcherType.FORWARD;
-
+/**
+ * Настройки Авторизации и аутентификации.
+ */
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
@@ -37,19 +38,18 @@ public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
-     * AuthenticationProvider - провайдер, которому делегируется процесс аутентификации
-     * DaoAuthenticationProvider - реализация AuthenticationProvider, занимающаяся аутентификацией
+     * Аутентифицирует пользователя через данные из БД
+     *
      */
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);  // для получения пользователя из хранилища
-        provider.setPasswordEncoder(passwordEncoder()); // для работы с паролями
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
 
     /**
      * Основа процесса аутентификации spring security
-     * Делегирует аутентификацию провайдерам - AuthenticationProvider
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws AccountException {
@@ -60,14 +60,21 @@ public class SecurityConfiguration {
         }
     }
 
+    /**
+     * Общие настройки доступа к endpoint.
+     * @param http Запрос
+     * @return Фильтр для сопоставления возможности запросов.
+     * @throws Exception
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests((authz) -> authz
-                        .requestMatchers("/account/registration", "/account/login")// запросы
-                        .permitAll()// разрешены всем
-                        .dispatcherTypeMatchers(FORWARD, ERROR).permitAll()// для отображения html
+                        .requestMatchers(HttpMethod.POST, "/account/registration")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/account/login")// запросы
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -76,6 +83,10 @@ public class SecurityConfiguration {
         return http.build();
     }
 
+    /**
+     * Шифрует пароль пользователя.
+     * @return Зашифрованный пароль пользователя
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);

@@ -1,16 +1,17 @@
 package com.smirnov.carwashspring.service;
 
-import com.smirnov.carwashspring.dto.request.create.RecordingCreateDTO;
-import com.smirnov.carwashspring.dto.response.get.RecordingDTO;
 import com.smirnov.carwashspring.dto.range.RangeDataTimeDTO;
-import com.smirnov.carwashspring.dto.response.get.RecordingReservedDTO;
+import com.smirnov.carwashspring.dto.request.create.RecordingCreateDTO;
 import com.smirnov.carwashspring.dto.response.get.RecordingComplitedDTO;
+import com.smirnov.carwashspring.dto.response.get.RecordingDTO;
+import com.smirnov.carwashspring.dto.response.get.RecordingReservedDTO;
 import com.smirnov.carwashspring.entity.service.Box;
-import com.smirnov.carwashspring.entity.service.Recording;
 import com.smirnov.carwashspring.entity.service.CarWashService;
+import com.smirnov.carwashspring.entity.service.Recording;
 import com.smirnov.carwashspring.entity.users.User;
 import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.repository.RecordingRepository;
+import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,7 @@ public class RecordingService {
         private LocalDateTime finish;
         private int timeInBox;
     }
+
     /**
      * Репозиторий записи.
      */
@@ -210,7 +212,7 @@ public class RecordingService {
      * @return Список выполненных записей
      */
     @Transactional(readOnly = true)
-    public List<RecordingComplitedDTO> getAllComplitedRecordingByUserId(Integer userId) {
+    public List<RecordingComplitedDTO> getAllCompletedRecordingByUserId(Integer userId) {
         List<Recording> recordings = recordingRepository.findAllByUser_IdAndCompletedIsTrue(userId);
         return recordings.stream()
                 .map(r -> modelMapper.map(r, RecordingComplitedDTO.class))
@@ -226,7 +228,8 @@ public class RecordingService {
      */
     @Transactional(readOnly = true)
     public List<RecordingDTO> getAllRecordingsByRangeAndIdBox(RangeDataTimeDTO rangeDataTimeDTO, Integer idBox) {
-        boxService.checkBoxById(idBox);
+        Box box = boxService.getBoxById(idBox);
+        boxService.checkAccessOperator(box);
         List<Recording> recordings = recordingRepository.findByBox_IdAndStartBetween(idBox, rangeDataTimeDTO.start(), rangeDataTimeDTO.finish());
         return getRecordingDTOS(recordings);
     }
@@ -261,7 +264,7 @@ public class RecordingService {
                 .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
     }
 
-    private RecordingInBox getBoxRecord(Set<CarWashService> services, RecordingCreateDTO recordingDTO, Integer id, Action action){
+    private RecordingInBox getBoxRecord(Set<CarWashService> services, RecordingCreateDTO recordingDTO, Integer id, Action action) {
         //Получаем базовое время выполнения всех услуг в записи
         int baseTimeAllWork = services.stream()
                 .mapToInt(CarWashService::getTime)

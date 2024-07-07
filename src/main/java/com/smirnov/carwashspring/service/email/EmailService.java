@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.email;
+package com.smirnov.carwashspring.service.email;
 
 
 import lombok.RequiredArgsConstructor;

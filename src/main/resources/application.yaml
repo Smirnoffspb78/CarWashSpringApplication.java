@@ -39,6 +39,7 @@ logging:
   
 security:
   jwtSecretExpiration: 86400000
+  jwtSecret: 841D8A6C80CBA4FCAD32D5367C18C53B
 
 
 

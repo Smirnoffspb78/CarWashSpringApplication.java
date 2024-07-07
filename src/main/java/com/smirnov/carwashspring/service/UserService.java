@@ -1,31 +1,38 @@
 package com.smirnov.carwashspring.service;
 
 
-import com.smirnov.carwashspring.dto.request.create.UserCreateDTO;
 import com.smirnov.carwashspring.entity.service.Recording;
 import com.smirnov.carwashspring.entity.users.DiscountWorker;
 import com.smirnov.carwashspring.entity.users.Role;
 import com.smirnov.carwashspring.entity.users.RolesUser;
 import com.smirnov.carwashspring.entity.users.User;
 import com.smirnov.carwashspring.exception.EntityNotFoundException;
-import com.smirnov.carwashspring.exception.LoginNotFoundException;
+import com.smirnov.carwashspring.exception.LoginException;
 import com.smirnov.carwashspring.repository.UserRepository;
+import com.smirnov.carwashspring.service.security.UserDetailsCustom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.Set;
 
 /**
  * Сервисный слой пользователя.
  */
 @RequiredArgsConstructor
 @Service
+@Transactional
 @Validated
 @Slf4j
-public class UserService {
+public class UserService implements UserDetailsService {
 
     /**
      * Тип скидки
@@ -52,7 +59,7 @@ public class UserService {
      *
      * @param id идентификатор пользователя
      */
-    @Transactional
+
     public void updateUserBeforeOperator(Integer id) {
         User user = getUserByIdAndRole(id, new Role(RolesUser.ROLE_USER));
         DiscountWorker discountWorker = new DiscountWorker();
@@ -69,7 +76,6 @@ public class UserService {
      * @param discount     Скидка
      * @param typeDiscount Тип скидки, принимает значения min или max.
      */
-    @Transactional
     public void updateDiscountForUser(Integer id,
                                       int discount,
                                       String typeDiscount) {
@@ -94,18 +100,24 @@ public class UserService {
     }
 
     /**
-     * Добавляет в систему нового пользователя.
-     *
-     * @param userCreateDTO Пользователь
+     * Проверяет наличие Пользователя по логину.
+     * @param login Логин
      */
-    @Transactional
-    public Integer createUser(UserCreateDTO userCreateDTO) {
-        if (userRepository.existsByLoginAndDeletedIsFalse(userCreateDTO.login())) {
-            throw new LoginNotFoundException("login уже занят");
+    public void checkUserByLogin(String login){
+        if (userRepository.existsByLoginAndDeletedIsFalse(login)) {
+            throw new LoginException("login уже занят");
         }
-        User user = modelMapper.map(userCreateDTO, User.class);
-        user.setRole(new Role(RolesUser.ROLE_USER));
+    }
+
+    /**
+     * Сохраняет пользователя в базу данных
+     * @param user пользователь
+     * @return Идентификатор пользователя
+     */
+    public Integer saveUser(User user) {
         return userRepository.save(user).getId();
+
+
     }
 
     /**
@@ -113,7 +125,6 @@ public class UserService {
      *
      * @param id Идентификатор USER
      */
-    @Transactional
     public void deleteUser(Integer id) {
         User user = getUserById(id);
         user.getRecordings().stream()
@@ -129,7 +140,6 @@ public class UserService {
      * @param idOperator Идентификатор оператора или админа
      * @param idUser            Идентификатор пользователя
      */
-    @Transactional
     public void activateDiscount(int discount, Integer idOperator, Integer idUser) {
         User user = getUserById(idUser);
         DiscountWorker discountWorker = discountWorkerService.getDiscountWorkerById(idOperator);
@@ -144,7 +154,6 @@ public class UserService {
      *
      * @param id Идентификатор пользователя.
      */
-    @Transactional
     public void deactivateDiscount(Integer id) {
         User user = getUserById(id);
         user.setDiscount(0);
@@ -163,5 +172,25 @@ public class UserService {
         if (!userRepository.existsById(id)){
             throw new EntityNotFoundException(User.class, id);
         }
+    }
+
+    /**
+     * Возвращает пользователя по логину.
+     *
+     * @param username логин пользователя
+     * @return пользователь в контексте Spring Security
+     * @throws UsernameNotFoundException if the user could not be found or the user has no
+     *                                   GrantedAuthority
+     */
+    @Override
+    public UserDetailsCustom loadUserByUsername(String username) {
+        User user = userRepository.findByLoginAndDeletedIsFalse(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(
+                user.getRole().getRolesUser().name()
+        );
+        log.info("Получен user с login: {}. Роль: {}", user.getLogin(), grantedAuthority.getAuthority());
+        return new UserDetailsCustom(username, user.getPassword(), Set.of(grantedAuthority), user.getId());
     }
 }

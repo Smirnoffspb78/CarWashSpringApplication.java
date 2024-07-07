@@ -1,7 +1,7 @@
 package com.smirnov.carwashspring.controlleremail;
 
 
-import com.smirnov.carwashspring.email.EmailService;
+import com.smirnov.carwashspring.service.email.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

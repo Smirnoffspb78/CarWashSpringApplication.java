@@ -39,7 +39,7 @@ public class BoxController {
 
     /**
      * Регистрирует новый Бокс.
-     * Права доступа - ADMIN.
+     * Права доступа: ADMIN.
      *
      * @param boxCreateDto DTO Бокс
      */
@@ -47,13 +47,13 @@ public class BoxController {
     @ResponseStatus(HttpStatus.CREATED)
     @Secured("ROLE_ADMIN")
     public Integer addBox(@RequestBody @Valid BoxCreateDTO boxCreateDto) {
-        log.info("POST /boxes");
+        log.info("POST: /boxes");
         return boxService.save(boxCreateDto);
     }
 
     /**
      * Возвращает список записей бокса по идентификатору.
-     * Права доступа: ADMIN, OPERATOR(если работает в этом боксе).
+     * Права доступа: ADMIN, OPERATOR, если работает в этом боксе.
      *
      * @param id идентификатор бокса
      * @return список записей бокса
@@ -61,7 +61,7 @@ public class BoxController {
     @GetMapping("/{id}/recordings")
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public List<RecordingDTO> getRecordingsById(@PathVariable("id") Integer id) {
-        log.info("GET /boxes/recordings/{}", id);
+        log.info("GET: /boxes/recordings/{}", id);
         return boxService.getAllRecordingById(id);
     }
 
@@ -77,7 +77,7 @@ public class BoxController {
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public List<RecordingDTO> getAllRecordingsByDateTimeRangeAndBoxId(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO,
                                                                       @PathVariable("id") Integer boxId) {
-        log.info("GET /boxes/recordings/{}/by-range-date-time/", boxId);
+        log.info("GET: /boxes/recordings/{}/by-range-date-time/", boxId);
         return recordingService.getAllRecordingsByRangeAndIdBox(rangeDataTimeDTO, boxId);
     }
 }

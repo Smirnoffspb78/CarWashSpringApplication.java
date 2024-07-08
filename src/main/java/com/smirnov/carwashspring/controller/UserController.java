@@ -114,12 +114,12 @@ public class UserController {
 
     /**
      * Возвращает все забронированные записи пользователя по его идентификатору.
-     * Права доступа: USER c данным id
+     * Права доступа: ADMIN, USER c данным id
      * @param userId Идентификатор пользователя
      * @return Список забронированных записей
      */
     @GetMapping("/{id}/records-reserved")
-    @Secured("ROLE_USER")
+    @Secured({"ROLE_ADMIN","ROLE_USER"})
     public List<RecordingReservedDTO> getAllActiveReserveByUserId(@PathVariable("id") Integer userId) {
         log.info("GET: /users/{}/records-reserved", userId);
         return recordingService.getAllActiveReserveByIdUse(userId);
@@ -127,12 +127,12 @@ public class UserController {
 
     /**
      * Возвращает все выполненные записи по идентификатору пользователя.
-     * Права доступа: USER с данным id
+     * Права доступа: ADMIN, OPERATOR с данным id USER с данным id
      * @param userId Идентификатор пользователя
      * @return Список выполненных записей
      */
     @GetMapping("/{id}/records-completed")
-    @Secured("ROLE_USER")
+    @Secured({"ROLE_ADMIN","ROLE_USER"})
     public List<RecordingComplitedDTO> getAllCompletedByUserId(@PathVariable("id") Integer userId) {
         log.info("GET /users/{userId}/records-completed");
         return recordingService.getAllCompletedRecordingByUserId(userId);

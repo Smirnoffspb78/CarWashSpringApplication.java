@@ -56,7 +56,6 @@ public class BoxService {
         return boxId;
     }
 
-
     /**
      * Возвращает список записей по идентификатору бокса
      *
@@ -73,17 +72,6 @@ public class BoxService {
     }
 
     /**
-     * Проверяет наличие бокса по его идентификатору
-     *
-     * @param id Идентификатор бокса.
-     */
-    public void checkBoxById(Integer id) {
-        if (!boxRepository.existsById(id)) {
-            throw new EntityNotFoundException(Box.class, id);
-        }
-    }
-
-    /**
      * Возвращает список всех боксов.
      *
      * @return Список боксов.
@@ -94,11 +82,22 @@ public class BoxService {
         return boxes;
     }
 
+    /**
+     * Возвращает бокс по его идентификатору
+     *
+     * @param id Идентификатор бокса
+     * @return Бокс
+     */
     public Box getBoxById(Integer id) {
         return boxRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(Box.class, id));
     }
 
-    public void  checkAccessOperator(Box box){
+    /**
+     * Проверяет права доступа оператора к боксу
+     *
+     * @param box Бокс
+     */
+    public void checkAccessOperator(Box box) {
         UserDetailsCustom userDetails = jwtAuthenticationFilter.getAuthUser();
         if (userDetails.getRolesUser().equals(RolesUser.ROLE_OPERATOR) && (!userDetails.getId().equals(box.getUser().getId()))) {
             throw new ForbiddenAccessException(userDetails.getId());

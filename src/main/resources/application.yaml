@@ -13,7 +13,11 @@ spring:
       ddl-auto:
         validate
     open-in-view: true
-
+    output:
+        ansi:
+          enabled=ALWAYS:
+  main:
+    banner-mode: off
   mail:
     username: ${LOGIN_MAIL}
     password: ${PASSWORD_MAIL}
@@ -36,7 +40,9 @@ logging:
     root: INFO
   file:
     name: LogCarWash
-  
+
+
+
 security:
   jwtSecretExpiration: 86400000
   jwtSecret: 841D8A6C80CBA4FCAD32D5367C18C53B

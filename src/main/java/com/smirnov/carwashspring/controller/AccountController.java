@@ -41,6 +41,7 @@ public class AccountController {
     @PostMapping("/registration")
     @ResponseStatus(HttpStatus.CREATED)
     public Integer createAccount(@RequestBody @Valid UserCreateDTO user) {
+        log.info("POST: /account/registration");
             return accountService.registration(user);
     }
 
@@ -55,6 +56,7 @@ public class AccountController {
     public Token loginAccount(@RequestParam("login") @NotNull(message = "login is null") String login,
                               @RequestParam("password") @NotNull(message = "password is null") String password) {
         try {
+            log.info("POST: /account/login");
             return accountService.loginAccount(login, password);
         } catch (AccountException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());

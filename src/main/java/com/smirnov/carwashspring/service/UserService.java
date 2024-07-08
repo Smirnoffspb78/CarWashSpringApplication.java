@@ -7,12 +7,15 @@ import com.smirnov.carwashspring.entity.users.Role;
 import com.smirnov.carwashspring.entity.users.RolesUser;
 import com.smirnov.carwashspring.entity.users.User;
 import com.smirnov.carwashspring.exception.EntityNotFoundException;
+import com.smirnov.carwashspring.exception.ForbiddenAccessException;
 import com.smirnov.carwashspring.exception.LoginException;
 import com.smirnov.carwashspring.repository.UserRepository;
+import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
 import com.smirnov.carwashspring.service.security.UserDetailsCustom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -27,7 +30,7 @@ import java.util.Set;
 /**
  * Сервисный слой пользователя.
  */
-@RequiredArgsConstructor
+
 @Service
 @Transactional
 @Validated
@@ -35,7 +38,7 @@ import java.util.Set;
 public class UserService implements UserDetailsService {
 
     /**
-     * Тип скидки
+     * Тип скидки.
      */
     private enum TypeDiscount {
         MIN, MAX
@@ -51,7 +54,13 @@ public class UserService implements UserDetailsService {
      */
     private final DiscountWorkerService discountWorkerService;
 
-    private final ModelMapper modelMapper;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public UserService(UserRepository userRepository, DiscountWorkerService discountWorkerService, @Lazy JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.userRepository = userRepository;
+        this.discountWorkerService = discountWorkerService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     /**
      * Выдает права оператора пользователю.
@@ -127,6 +136,9 @@ public class UserService implements UserDetailsService {
      */
     public void deleteUser(Integer id) {
         User user = getUserById(id);
+        if (!id.equals(jwtAuthenticationFilter.getAuthUser().getId())){
+            throw new ForbiddenAccessException(id);
+        }
         user.getRecordings().stream()
                 .filter(Recording::isReserved)
                 .forEach(recording -> recording.setReserved(false));

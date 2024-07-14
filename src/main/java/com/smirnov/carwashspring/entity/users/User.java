@@ -2,6 +2,7 @@ package com.smirnov.carwashspring.entity.users;
 
 
 import com.smirnov.carwashspring.entity.service.Recording;
+import com.smirnov.carwashspring.validation.groupvalidated.PasswordValidation;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,7 +19,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.validator.constraints.Range;
 
 import java.util.ArrayList;
@@ -52,8 +52,9 @@ public class User {
     /**
      * Пароль.
      */
-    /*@Pattern(regexp = "[A-z\\d!#$*]{8,200}",
-            message = "password может содержать латинские буквы, цифры и символы !#$*. Длина должна быть от 8 до 200 символов")*/
+    @Pattern(regexp = "[A-z\\d!#$*]{8,200}",
+            message = "password может содержать латинские буквы, цифры и символы !#$*. Длина должна быть от 8 до 200 символов",
+            groups = PasswordValidation.class)
     @Column(name = "password")
     private String password;
 
@@ -74,7 +75,6 @@ public class User {
     /**
      * Роль.
      */
-
     @JoinColumn(name = "role_name")
     @ManyToOne
     private Role role;

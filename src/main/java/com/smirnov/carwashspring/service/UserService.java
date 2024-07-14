@@ -12,6 +12,7 @@ import com.smirnov.carwashspring.exception.LoginException;
 import com.smirnov.carwashspring.repository.UserRepository;
 import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
 import com.smirnov.carwashspring.dto.response.get.UserDetailsCustom;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
@@ -37,33 +38,21 @@ import java.util.Set;
 public class UserService implements UserDetailsService {
 
     /**
-     * Тип скидки.
-     */
-    private enum TypeDiscount {
-        MIN, MAX
-    }
-
-    /**
      * Репозиторий пользователя.
      */
     private final UserRepository userRepository;
-
     /**
-     * Сервисный слой скидки, предоставляемой оператором.
+     * Сервисный слой записи.
      */
-    private final EmployeeService employeeService;
+    private final RecordingService recordingService;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    private final RecordingService recordingService;
-
     private final ModelMapper modelMapper;
 
-    public UserService(UserRepository userRepository, EmployeeService employeeService,
-                       @Lazy JwtAuthenticationFilter jwtAuthenticationFilter, @Lazy RecordingService recordingService,
-                       ModelMapper modelMapper) {
+    public UserService(UserRepository userRepository, @Lazy JwtAuthenticationFilter jwtAuthenticationFilter,
+                       @Lazy RecordingService recordingService, ModelMapper modelMapper) {
         this.userRepository = userRepository;
-        this.employeeService = employeeService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.recordingService = recordingService;
         this.modelMapper = modelMapper;
@@ -77,44 +66,14 @@ public class UserService implements UserDetailsService {
      */
 
     public void updateUserBeforeOperator(Integer id) {
-        User user = getUserByIdAndRole(id, new Role(RolesUser.ROLE_USER));
+        User user = userRepository.findByIdAndRoleAndDeletedIsFalse(id, new Role(RolesUser.ROLE_USER)).
+                orElseThrow(() -> new EntityNotFoundException(User.class, id));
         Employee employee = modelMapper.map(user, Employee.class);
-        Integer operatorId = employeeService.saveEmployee(employee);
+        Integer operatorId = userRepository.save(employee).getId();
         employee.setId(operatorId);
         recordingService.getAllRecordingsUser(user).forEach(r -> r.setUser(employee));
         user.setDeleted(true);
-        log.info("user c id {} назначена роль OPERATOR. Новый id user: {}", id, operatorId);
-    }
-
-    /**
-     * Обновляет минимальную или максимальную скидку, предоставляемую оператором.
-     * Уровень доступа: ADMIN.
-     *
-     * @param id           Идентификатор пользователя
-     * @param discount     Скидка
-     * @param typeDiscount Тип скидки, принимает значения min или max.
-     */
-    public void updateDiscountForUser(Integer id,
-                                      int discount,
-                                      String typeDiscount) {
-        Employee employee = employeeService.getEmployeeById(id);
-        TypeDiscount typeDiscountEnum = TypeDiscount.valueOf(typeDiscount.toUpperCase());
-        switch (typeDiscountEnum) {
-            case MIN -> {
-                if (discount > employee.getMaxDiscountForUsers()) {
-                    log.error("minDiscountForUsers не должен быть больше, чем max. {}", HttpStatus.BAD_REQUEST);
-                    throw new IllegalArgumentException("minDiscountForUsers не должен быть больше, чем max");
-                }
-                employee.setMinDiscountForUsers(discount);
-            }
-            case MAX -> {
-                if (discount < employee.getMinDiscountForUsers()) {
-                    log.error("minDiscountForUsers не должен быть больше, чем max. {}", HttpStatus.BAD_REQUEST);
-                    throw new IllegalArgumentException("minDiscountForUsers не должен быть больше, чем max");
-                }
-                employee.setMaxDiscountForUsers(discount);
-            }
-        }
+        log.info("{}. user c id {} назначена роль OPERATOR. Новый id user: {}", HttpStatus.NO_CONTENT, id, operatorId);
     }
 
     /**
@@ -154,41 +113,10 @@ public class UserService implements UserDetailsService {
         user.setDeleted(true);
     }
 
-    /**
-     * Назначает скидку пользователю по идентификатору
-     *
-     * @param discount   Размер скидки, [%]
-     * @param idOperator Идентификатор оператора или админа
-     * @param idUser     Идентификатор пользователя
-     */
-    public void activateDiscount(int discount, Integer idOperator, Integer idUser) {
-        User user = getUserById(idUser);
-        Employee employee = employeeService.getEmployeeById(idOperator);
-        if (discount > employee.getMaxDiscountForUsers() || discount < employee.getMinDiscountForUsers()) {
-            throw new IllegalArgumentException("discount должен быть в диапазоне от MinDiscount до MaxDiscount");
-        }
-        user.setDiscount(discount);
-    }
-
-    /**
-     * Удаляет скидку пользователю по его идентификатору.
-     *
-     * @param id Идентификатор пользователя.
-     */
-    public void deactivateDiscount(Integer id) {
-        User user = getUserById(id);
-        user.setDiscount(0);
-        log.info("Скидка у пользователя с id {} удалена", id);
-    }
 
     public User getUserById(Integer id) {
         return userRepository.findByIdAndDeletedIsFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException(User.class, id));
-    }
-
-    public User getUserByIdAndRole(Integer id, Role role) {
-        return userRepository.findByIdAndRoleAndDeletedIsFalse(id, role).
-                orElseThrow(() -> new EntityNotFoundException(User.class, id));
     }
 
     public void checkUserById(Integer id) {
@@ -202,8 +130,6 @@ public class UserService implements UserDetailsService {
      *
      * @param username логин пользователя
      * @return пользователь в контексте Spring Security
-     * @throws UsernameNotFoundException if the user could not be found or the user has no
-     *                                   GrantedAuthority
      */
     @Override
     public UserDetailsCustom loadUserByUsername(String username) {

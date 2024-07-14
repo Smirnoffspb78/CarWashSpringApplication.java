@@ -124,7 +124,7 @@ public class RecordingController {
      * @param id Идентификатор записи
      */
     @PutMapping("/{id}/completed")
-    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public void updateRecordCompleted(@PathVariable(name = "id") Integer id) {
         log.info("PUT: /recordings/{}/completed/", id);

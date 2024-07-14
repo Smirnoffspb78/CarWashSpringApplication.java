@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import javax.security.auth.login.AccountException;
+
+import javax.security.auth.login.AccountNotFoundException;
+
 
 /**
  * Контроллер аккаунта.
@@ -57,7 +59,8 @@ public class AccountController {
         try {
             log.info("POST: /account/login");
             return accountService.loginAccount(login, password);
-        } catch (AccountException e) {
+        } catch (AccountNotFoundException e) {
+            log.error("Введены неверные логин или пароль");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }

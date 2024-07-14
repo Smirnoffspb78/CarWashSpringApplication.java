@@ -28,7 +28,7 @@ public class ExceptionHandlerAdvice {
     }
 
     @ResponseBody
-    @ExceptionHandler({LoginException.class, RecordingCreateException.class})
+    @ExceptionHandler({LoginException.class, RecordingCreateException.class, IllegalArgumentException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String loginException(LoginException e) {
         log.error("{}. ", HttpStatus.BAD_REQUEST, e);

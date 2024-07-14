@@ -15,9 +15,9 @@ public class RecordingReserveDTOMapper {
 
     @PostConstruct
     public void configure() {
-        modelMapper.typeMap(Recording.class, RecordingReservedDTO.class)
+        /*modelMapper.typeMap(Recording.class, RecordingReservedDTO.class)
                 .addMappings(mapping -> mapping.using(new ServiceSetConverter())
-                        .map(Recording::getServices, RecordingReservedDTO::setServicesName));
+                        .map(Recording::getServices, RecordingReservedDTO::setServicesName));*/
         /*modelMapper.typeMap(Recording.class, RecordingReservedDTO.class)
                 .addMappings(mapping -> mapping.using((MappingContext<Set<CarWashService>, Set<String>> context) -> {
                             if (context.getSource() == null) {

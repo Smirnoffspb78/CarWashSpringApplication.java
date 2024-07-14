@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import net.jcip.annotations.Immutable;
+import org.hibernate.annotations.Immutable;
 
 import java.math.BigDecimal;
 

@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,7 +84,7 @@ public class RecordingService {
     public BigDecimal getProfit(RangeDataTimeDTO rangeDataTimeDTO) {
         BigDecimal profit = recordingRepository.findSumByRange(rangeDataTimeDTO.getStart(), rangeDataTimeDTO.getFinish())
                 .orElse(BigDecimal.valueOf(0.0));
-        log.info("Получена выручка за диапазон {} - {}", rangeDataTimeDTO.getStart(), rangeDataTimeDTO.getFinish());
+        log.info("{}. Получена выручка за диапазон {} - {}", HttpStatus.OK, rangeDataTimeDTO.getStart(), rangeDataTimeDTO.getFinish());
         return profit;
     }
 
@@ -97,7 +98,7 @@ public class RecordingService {
     public List<RecordingDTO> getAllRecordingsByRange(RangeDataTimeDTO rangeDTDto) {
         List<RecordingDTO> recordingDTOS =
                 getRecordingDTOS(recordingRepository.findByStartBetween(rangeDTDto.getStart(), rangeDTDto.getFinish()));
-        log.info("Получен список всех записей за диапазон {} - {}", rangeDTDto.getStart(), rangeDTDto.getFinish());
+        log.info("{}. Получен список всех записей за диапазон {} - {}", HttpStatus.OK, rangeDTDto.getStart(), rangeDTDto.getFinish());
         return recordingDTOS;
     }
 
@@ -113,7 +114,7 @@ public class RecordingService {
             throw new ForbiddenAccessException(id);
         }
         recording.setReserved(true);
-        log.info("Запись с id {} подтверждена", id);
+        log.info("{}. Запись с id {} подтверждена", HttpStatus.NO_CONTENT, id);
     }
 
     /**
@@ -126,7 +127,7 @@ public class RecordingService {
                 .orElseThrow(() -> new IllegalArgumentException("Записи с таким id отсутствует или она уже завершенная"));
         boxService.checkAccessOperator(recordingUpdate.getBox());
         recordingUpdate.setCompleted(true);
-        log.info("Запись с id {} выполнена", id);
+        log.info("{}. Запись с id {} выполнена", HttpStatus.NO_CONTENT, id);
     }
 
     /**
@@ -139,7 +140,7 @@ public class RecordingService {
         checkAccessRecording(recording);
         recording.setReserved(false);
         recording.setRemoved(true);
-        log.info("Запись с id {} удалена", id);
+        log.info("{}. Запись с id {} удалена", HttpStatus.NO_CONTENT, id);
     }
 
     /**
@@ -166,17 +167,16 @@ public class RecordingService {
             throw new RecordingCreateException("У пользователя с id %d уже есть записи на это время".formatted(user.getId()));
         }
         //Создаем запись
-        Recording recording = Recording.builder()
-                .user(user)
-                .start(recordingDTO.start())
-                .created(LocalDateTime.now())
-                .finish(finishRecord)
-                .cost(calculateCost(user, services))
-                .box(accessibleBox.getBox())
-                .services(services)
-                .build();
+        Recording recording = new Recording();
+        recording.setUser(user);
+        recording.setStart(recordingDTO.start());
+        recording.setCreated(LocalDateTime.now());
+        recording.setFinish(finishRecord);
+        recording.setCost(calculateCost(user, services));
+        recording.setBox(accessibleBox.getBox());
+        recording.setServices(services);
         Integer recordingId = recordingRepository.save(recording).getId();
-        log.info("Запись с id {} создана", recordingId);
+        log.info("{}. Запись с id {} создана", HttpStatus.CREATED, recordingId);
         return recordingId;
     }
 
@@ -206,7 +206,7 @@ public class RecordingService {
         recording.setCost(calculateCost(user, services));
         recording.setBox(accessibleBox.getBox());
         recording.setServices(services);
-        log.info("Запись с id {} изменена", id);
+        log.info("{}. Запись с id {} изменена", HttpStatus.NO_CONTENT, id);
     }
 
     /**
@@ -228,7 +228,7 @@ public class RecordingService {
                     return rsd;
                 })
                 .toList();
-        log.info("Получен список всех активных броней пользователя с id {}", userId);
+        log.info("{}. Получен список всех активных броней пользователя с id {}", HttpStatus.OK, userId);
         return recordingReservedDTOS;
     }
 
@@ -244,7 +244,7 @@ public class RecordingService {
         List<RecordingCompletedDTO> recordingCompletedDTOS = recordingRepository.findAllByUser_IdAndCompletedIsTrue(userId).stream()
                 .map(r -> modelMapper.map(r, RecordingCompletedDTO.class))
                 .toList();
-        log.info("Получен список выполненных записей пользователя с id {}", userId);
+        log.info("{}. Получен список выполненных записей пользователя с id {}", HttpStatus.OK, userId);
         return recordingCompletedDTOS;
     }
 
@@ -252,7 +252,7 @@ public class RecordingService {
      * Возвращает список всех записей за диапазон даты времени по идентификатору бокса.
      *
      * @param rangeDTDTO Диапазоны даты,
-     * @param boxId            Идентификатор бокса
+     * @param boxId      Идентификатор бокса
      * @return Список записей.
      */
     @Transactional(readOnly = true)
@@ -364,6 +364,7 @@ public class RecordingService {
 
     /**
      * Вспомогательный метод проверяет возможность доступа к записи
+     *
      * @param userId Идентификатор пользователя
      */
     private void checkAccessRecording(Integer userId) {
@@ -380,6 +381,7 @@ public class RecordingService {
 
     /**
      * Вспомогательный метод проверяет возможность доступа к записи
+     *
      * @param recording запись
      */
     private void checkAccessRecording(Recording recording) {

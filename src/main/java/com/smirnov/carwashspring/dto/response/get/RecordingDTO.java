@@ -1,7 +1,6 @@
 package com.smirnov.carwashspring.dto.response.get;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,7 +14,6 @@ import java.util.Set;
  * DTO для получения информации о записи.
  */
 
-@Builder
 @Getter
 @Setter
 @AllArgsConstructor

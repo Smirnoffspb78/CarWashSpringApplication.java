@@ -15,11 +15,15 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import javax.security.auth.login.AccountException;
+import javax.security.auth.login.AccountNotFoundException;
+
+import static org.springframework.security.core.context.SecurityContextHolder.getContext;
+
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +41,7 @@ public class AccountService {
      * Регистрирует пользователя и кодирует пароль, введенный при регистрации.
      * @param userCreateDTO Пользователь
      */
-    public Integer registration(UserCreateDTO userCreateDTO) {
+    public Integer registration(@Validated UserCreateDTO userCreateDTO) {
         userService.checkUserByLogin(userCreateDTO.login());
         User user = modelMapper.map(userCreateDTO, User.class);
         user.setRole(new Role(RolesUser.ROLE_USER));
@@ -52,20 +56,19 @@ public class AccountService {
      * @param login Логин
      * @param password Пароль
      * @return Токен
-     * @throws AccountException Если введены некорректные данные логина или пароля
      */
-    public Token loginAccount(String login, String password) throws AccountException {
+    public Token loginAccount(String login, String password) throws AccountNotFoundException {
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(login, password));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        getContext().setAuthentication(authentication);
         Token token = new Token();
         try {
             token.setAccessToken(jwtSecurityService.generateToken((UserDetailsCustom) authentication.getPrincipal()));
-            token.setRefreshToken(jwtSecurityService.generateRefreshToken());
         } catch (JOSEException e) {
-            log.error("Не удалось создать токен");
-            throw new AccountException("Token cannot not created: " + e.getMessage());
+            log.error("Не правильно введены логин или пароль");
+            throw new AccountNotFoundException("Не правильно введены логин или пароль");
         }
+        token.setRefreshToken(jwtSecurityService.generateRefreshToken());
         return token;
     }
 }

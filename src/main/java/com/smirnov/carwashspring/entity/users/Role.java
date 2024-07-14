@@ -23,6 +23,6 @@ public class Role {
     @Id
     @Enumerated(value = EnumType.STRING)
     @Column(name = "name")
-    RolesUser rolesUser;
+    private RolesUser rolesUser;
 
 }

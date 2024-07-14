@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.configuration;
+package com.smirnov.carwashspring.configuration.mapper;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;

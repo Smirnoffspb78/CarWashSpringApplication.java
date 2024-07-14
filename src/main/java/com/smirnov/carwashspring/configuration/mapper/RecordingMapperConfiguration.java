@@ -1,6 +1,6 @@
-package com.smirnov.carwashspring.configuration;
+package com.smirnov.carwashspring.configuration.mapper;
 
-import com.smirnov.carwashspring.dto.response.get.RecordingComplitedDTO;
+import com.smirnov.carwashspring.dto.response.get.RecordingCompletedDTO;
 import com.smirnov.carwashspring.entity.service.CarWashService;
 import com.smirnov.carwashspring.entity.service.Recording;
 import jakarta.annotation.PostConstruct;
@@ -19,13 +19,13 @@ public class RecordingMapperConfiguration {
 
     @PostConstruct
     private void configure() {
-        modelMapper.typeMap(Recording.class, RecordingComplitedDTO.class)
+        modelMapper.typeMap(Recording.class, RecordingCompletedDTO.class)
                 .setConverter(context -> {
                     Recording r = context.getSource();
-                    return RecordingComplitedDTO.builder()
+                    return RecordingCompletedDTO.builder()
                             .id(r.getId())
                             .cost(r.getCost())
-                            .timeComplite(Duration.between(r.getStart(), r.getFinish()).toMinutes())
+                            .timeComplete(Duration.between(r.getStart(), r.getFinish()).toMinutes())
                             .servicesName(r.getServices().stream()
                                     .map(CarWashService::getName)
                                     .collect(Collectors.toSet()))

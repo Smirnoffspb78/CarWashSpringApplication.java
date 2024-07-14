@@ -4,6 +4,7 @@ import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.exception.ForbiddenAccessException;
 import com.smirnov.carwashspring.exception.LoginException;
 import com.smirnov.carwashspring.exception.LoginNotFoundException;
+import com.smirnov.carwashspring.exception.RecordingCreateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -14,49 +15,31 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.List;
-
 @ControllerAdvice
 @Slf4j
-public class ExceptionController {
+public class ExceptionHandlerAdvice {
 
     @ResponseBody
-    @ExceptionHandler(EntityNotFoundException.class)
+    @ExceptionHandler({EntityNotFoundException.class, LoginNotFoundException.class, UsernameNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String entityException(EntityNotFoundException e) {
-        log.error("{}. {}", HttpStatus.NOT_FOUND, e.getMessage());
+        log.error("{}. ", HttpStatus.NOT_FOUND, e);
         return responseServer(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     @ResponseBody
-    @ExceptionHandler(LoginNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String loginNotFoundException(LoginNotFoundException e) {
-        log.error("{}. {}", HttpStatus.NOT_FOUND, e.getMessage());
-        return responseServer(HttpStatus.NOT_FOUND, e.getMessage());
-    }
-
-    @ResponseBody
-    @ExceptionHandler(LoginException.class)
+    @ExceptionHandler({LoginException.class, RecordingCreateException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String loginException(LoginException e) {
-        log.error("{}. {}", HttpStatus.BAD_REQUEST, e.getMessage());
+        log.error("{}. ", HttpStatus.BAD_REQUEST, e);
         return responseServer(HttpStatus.BAD_REQUEST, e.getMessage());
-    }
-
-    @ResponseBody
-    @ExceptionHandler(UsernameNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String userNotFoundException(UsernameNotFoundException e) {
-        log.error("{}. {}", HttpStatus.NOT_FOUND, e.getMessage());
-        return responseServer(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     @ResponseBody
     @ExceptionHandler(ForbiddenAccessException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public String forbiddenException(ForbiddenAccessException e) {
-        log.error("{}. {}", HttpStatus.FORBIDDEN, e.getMessage());
+        log.error("{}. ", HttpStatus.FORBIDDEN, e);
         return responseServer(HttpStatus.FORBIDDEN, e.getMessage());
     }
 

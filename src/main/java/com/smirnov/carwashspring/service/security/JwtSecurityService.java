@@ -3,27 +3,19 @@ package com.smirnov.carwashspring.service.security;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWEEncrypter;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
-import com.nimbusds.jose.KeyLengthException;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.DirectEncrypter;
-import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.BadJOSEException;
-import com.nimbusds.jose.proc.JWEDecryptionKeySelector;
-import com.nimbusds.jose.proc.JWEKeySelector;
 import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
-import com.nimbusds.jwt.proc.DefaultJWTProcessor;
+import com.smirnov.carwashspring.configuration.sequrity.JWTConfiguration;
+import com.smirnov.carwashspring.dto.response.get.UserDetailsCustom;
 import com.smirnov.carwashspring.entity.users.RolesUser;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.text.ParseException;
 import java.util.Date;
@@ -36,27 +28,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JwtSecurityService {
 
-    private final WebApplicationContext webApplicationContext;
+    private final JWTConfiguration jwtConfiguration;
 
-    //@Value("${security.jwtSecret}")
-    private String jwtSecret = "841D8A6C80CBA4FCAD32D5367C18C53B";
     //@Value("${security.jwtSecretExpiration}")
     private long jwtSecretExpiration = 86400000;
-
-    @Bean("JWEEncrypter")
-    public JWEEncrypter encrypter() throws KeyLengthException {
-        return new DirectEncrypter(jwtSecret.getBytes());
-    }
-
-    @Bean("JWTProcessor")
-    public ConfigurableJWTProcessor<SimpleSecurityContext> jwtProcessor() {
-        ConfigurableJWTProcessor<SimpleSecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
-        JWKSource<SimpleSecurityContext> jweKeySource = new ImmutableSecret<>(jwtSecret.getBytes());
-        JWEKeySelector<SimpleSecurityContext> jweKeySelector =
-                new JWEDecryptionKeySelector<>(JWEAlgorithm.DIR, EncryptionMethod.A128CBC_HS256, jweKeySource);
-        jwtProcessor.setJWEKeySelector(jweKeySelector);
-        return jwtProcessor;
-    }
 
     /**
      * Генерирует токен для обновления
@@ -75,35 +50,31 @@ public class JwtSecurityService {
      * @throws JOSEException
      */
     public String generateToken(UserDetailsCustom user) throws JOSEException {
-        System.out.println(user.getAuthorities());
-        System.out.println(user.getRolesUser());
-        System.out.println(user.getId());
         JWEObject jweObject = new JWEObject(
                 new JWEHeader(JWEAlgorithm.DIR, EncryptionMethod.A128CBC_HS256),
                 new Payload(
                         new JWTClaimsSet.Builder()
                                 .subject(user.getUsername()) // идентификатор пользователя subject
-                                .claim("id", user.getId())
-                                .claim("roles", user.getRolesUser())
+                                .claim("id", user.getId().toString())
+                                .claim("roles", user.getRolesUser().toString())
                                 .issueTime(new Date()) // время выдачи токена
                                 .expirationTime(new Date(System.currentTimeMillis() + jwtSecretExpiration * 10000))
                                 .build().toJSONObject()));
-        jweObject.encrypt((JWEEncrypter) webApplicationContext.getBean("JWEEncrypter"));
+        jweObject.encrypt(jwtConfiguration.encrypter());
         return jweObject.serialize();
     }
 
     /**
      * Извлекает токен.
      *
-     * @param token JW-токе
+     * @param token JW-токен
      * @return
      * @throws BadJOSEException
      * @throws ParseException
      * @throws JOSEException
      */
     private JWTClaimsSet extractClaims(String token) throws BadJOSEException, ParseException, JOSEException {
-        ConfigurableJWTProcessor<SimpleSecurityContext> jwtProcessor =
-                (ConfigurableJWTProcessor<SimpleSecurityContext>) webApplicationContext.getBean("JWTProcessor");
+        ConfigurableJWTProcessor<SimpleSecurityContext> jwtProcessor = jwtConfiguration.jwtProcessor();
         return jwtProcessor.process(token, null);
     }
 
@@ -123,12 +94,12 @@ public class JwtSecurityService {
 
     public RolesUser getRoles(String token) throws BadJOSEException, ParseException, JOSEException {
         JWTClaimsSet claims = extractClaims(token);
-        return (RolesUser) claims.getClaim("roles");
+        return RolesUser.valueOf(claims.getClaim("roles").toString());
     }
 
-    public Integer getId(String token) throws BadJOSEException, ParseException, JOSEException {
+    public Object getId(String token) throws BadJOSEException, ParseException, JOSEException {
         JWTClaimsSet claims = extractClaims(token);
-        return (Integer) claims.getClaim("id");
+        return claims.getClaim("id");
     }
 
     /**

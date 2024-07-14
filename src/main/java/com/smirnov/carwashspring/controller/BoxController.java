@@ -38,20 +38,6 @@ public class BoxController {
     private final RecordingService recordingService;
 
     /**
-     * Регистрирует новый Бокс.
-     * Права доступа: ADMIN.
-     *
-     * @param boxCreateDto DTO Бокс
-     */
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    @Secured("ROLE_ADMIN")
-    public Integer addBox(@RequestBody @Valid BoxCreateDTO boxCreateDto) {
-        log.info("POST: /boxes");
-        return boxService.save(boxCreateDto);
-    }
-
-    /**
      * Возвращает список записей бокса по идентификатору.
      * Права доступа: ADMIN, OPERATOR, если работает в этом боксе.
      *
@@ -79,5 +65,19 @@ public class BoxController {
                                                                       @PathVariable("id") Integer boxId) {
         log.info("GET: /boxes/recordings/{}/by-range-date-time/", boxId);
         return recordingService.getAllRecordingsByRangeAndIdBox(rangeDataTimeDTO, boxId);
+    }
+
+    /**
+     * Регистрирует новый Бокс.
+     * Права доступа: ADMIN.
+     *
+     * @param boxCreateDto DTO Бокс
+     */
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @Secured("ROLE_ADMIN")
+    public Integer addBox(@RequestBody @Valid BoxCreateDTO boxCreateDto) {
+        log.info("POST: /boxes");
+        return boxService.save(boxCreateDto);
     }
 }

@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.configuration;
+package com.smirnov.carwashspring.configuration.mapper;
 
 import com.smirnov.carwashspring.dto.request.create.BoxCreateDTO;
 import com.smirnov.carwashspring.entity.service.Box;
@@ -11,15 +11,12 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.MappingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @RequiredArgsConstructor
 public class BoxMapperConfiguration {
 
-    private static final Logger log = LoggerFactory.getLogger(BoxMapperConfiguration.class);
     public final ModelMapper modelMapper;
 
     private final UserRepository userRepository;
@@ -29,9 +26,8 @@ public class BoxMapperConfiguration {
         modelMapper.typeMap(BoxCreateDTO.class, Box.class)
                 .addMappings(mapping -> mapping.using((MappingContext<Integer, User> context) ->
                         userRepository.findByIdAndRoleAndDeletedIsFalse(context.getSource(), new Role(RolesUser.ROLE_OPERATOR))
-                                .orElseThrow(() -> {
-                                    log.error("Оператор с id %d не найден".formatted(context.getSource()));
-                                    return new EntityNotFoundException(User.class, context.getSource());})
+                                .orElseThrow(() ->
+                                  new EntityNotFoundException(User.class, context.getSource()))
                 ).map(BoxCreateDTO::getOperatorId, Box::setUser));
     }
 }

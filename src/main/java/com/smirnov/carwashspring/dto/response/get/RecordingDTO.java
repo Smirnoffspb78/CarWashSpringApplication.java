@@ -20,7 +20,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public final class RecordingDTO {
+public class RecordingDTO {
     /**
      * Идентификатор записи.
      */

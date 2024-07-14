@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.entity.users;
+package com.smirnov.carwashspring.dto.response.get;
 
 import lombok.Getter;
 import lombok.Setter;

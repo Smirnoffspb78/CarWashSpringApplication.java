@@ -1,6 +1,6 @@
 package com.smirnov.carwashspring.dto.request.create;
 
-import com.smirnov.carwashspring.dto.range.Range;
+import com.smirnov.carwashspring.dto.range.SpecifyRange;
 import com.smirnov.carwashspring.validation.RangeDateOrTime;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -17,7 +17,7 @@ import java.time.LocalTime;
 @RangeDateOrTime
 @Getter
 @Setter
-public class BoxCreateDTO implements Range {
+public class BoxCreateDTO implements SpecifyRange {
     /**
      * Время начала работы.
      */
@@ -34,4 +34,6 @@ public class BoxCreateDTO implements Range {
      * Пользователь с ролью оператора.
      */
     private @NotNull(message = "operatorId не должен быть null") Integer operatorId;
+
+
 }

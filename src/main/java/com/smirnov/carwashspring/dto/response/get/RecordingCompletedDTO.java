@@ -13,7 +13,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
-public class RecordingComplitedDTO {
+public class RecordingCompletedDTO {
     /**
      * Идентификатор записи.
      */
@@ -21,7 +21,7 @@ public class RecordingComplitedDTO {
     /**
      * Время выполнения.
      */
-    private long timeComplite;
+    private long timeComplete;
     /**
      * Стоимость услуг.
      */

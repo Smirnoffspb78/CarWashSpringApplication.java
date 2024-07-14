@@ -2,7 +2,7 @@ package com.smirnov.carwashspring.service;
 
 import com.smirnov.carwashspring.dto.range.RangeDataTimeDTO;
 import com.smirnov.carwashspring.dto.request.create.RecordingCreateDTO;
-import com.smirnov.carwashspring.dto.response.get.RecordingComplitedDTO;
+import com.smirnov.carwashspring.dto.response.get.RecordingCompletedDTO;
 import com.smirnov.carwashspring.dto.response.get.RecordingDTO;
 import com.smirnov.carwashspring.dto.response.get.RecordingReservedDTO;
 import com.smirnov.carwashspring.entity.service.Box;
@@ -12,9 +12,10 @@ import com.smirnov.carwashspring.entity.users.RolesUser;
 import com.smirnov.carwashspring.entity.users.User;
 import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.exception.ForbiddenAccessException;
+import com.smirnov.carwashspring.exception.RecordingCreateException;
 import com.smirnov.carwashspring.repository.RecordingRepository;
 import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
-import com.smirnov.carwashspring.service.security.UserDetailsCustom;
+import com.smirnov.carwashspring.dto.response.get.UserDetailsCustom;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -55,18 +56,16 @@ public class RecordingService {
      * Репозиторий записи.
      */
     private final RecordingRepository recordingRepository;
-
     /**
-     * Репозиторий бокса.
+     * Сервисный слой бокса.
      */
     private final BoxService boxService;
     /**
-     * Репозиторий пользователя.
+     * Сервисный слой пользователя.
      */
     private final UserService userService;
-
     /**
-     * Репозиторий услуг.
+     * Сервисный слой услуг.
      */
     private final CarWashServiceService carWashServiceService;
 
@@ -82,20 +81,39 @@ public class RecordingService {
      */
     @Transactional(readOnly = true)
     public BigDecimal getProfit(RangeDataTimeDTO rangeDataTimeDTO) {
-        return recordingRepository.findSumByRange(rangeDataTimeDTO.start(), rangeDataTimeDTO.finish())
+        BigDecimal profit = recordingRepository.findSumByRange(rangeDataTimeDTO.getStart(), rangeDataTimeDTO.getFinish())
                 .orElse(BigDecimal.valueOf(0.0));
+        log.info("Получена выручка за диапазон {} - {}", rangeDataTimeDTO.getStart(), rangeDataTimeDTO.getFinish());
+        return profit;
     }
 
     /**
      * Возвращает список всех записей за диапазон даты, время.
      *
-     * @param rangeDataTimeDTO Диапазон даты, времени
+     * @param rangeDTDto Диапазон даты, времени
      * @return Список записей
      */
     @Transactional(readOnly = true)
-    public List<RecordingDTO> getAllRecordingsByRange(RangeDataTimeDTO rangeDataTimeDTO) {
-        List<Recording> recordings = recordingRepository.findByStartBetween(rangeDataTimeDTO.start(), rangeDataTimeDTO.finish());
-        return getRecordingDTOS(recordings);
+    public List<RecordingDTO> getAllRecordingsByRange(RangeDataTimeDTO rangeDTDto) {
+        List<RecordingDTO> recordingDTOS =
+                getRecordingDTOS(recordingRepository.findByStartBetween(rangeDTDto.getStart(), rangeDTDto.getFinish()));
+        log.info("Получен список всех записей за диапазон {} - {}", rangeDTDto.getStart(), rangeDTDto.getFinish());
+        return recordingDTOS;
+    }
+
+    /**
+     * Подтверждает запись по ее идентификатору.
+     *
+     * @param id Идентификатор записи
+     */
+    public void approve(Integer id) {
+        Recording recording = recordingRepository.findByIdAndReservedIsFalseAndRemovedIsFalse(id)
+                .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
+        if (!recording.getUser().getId().equals(jwtAuthenticationFilter.getAuthUser().getId())) {
+            throw new ForbiddenAccessException(id);
+        }
+        recording.setReserved(true);
+        log.info("Запись с id {} подтверждена", id);
     }
 
     /**
@@ -108,6 +126,7 @@ public class RecordingService {
                 .orElseThrow(() -> new IllegalArgumentException("Записи с таким id отсутствует или она уже завершенная"));
         boxService.checkAccessOperator(recordingUpdate.getBox());
         recordingUpdate.setCompleted(true);
+        log.info("Запись с id {} выполнена", id);
     }
 
     /**
@@ -120,20 +139,7 @@ public class RecordingService {
         checkAccessRecording(recording);
         recording.setReserved(false);
         recording.setRemoved(true);
-    }
-
-    /**
-     * Подтверждает запись по ее идентификатору.
-     *
-     * @param id Идентификатор записи
-     */
-    public void approve(Integer id) {
-        Recording recording = recordingRepository.findByIdAndReservedIsFalseAndRemovedIsFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
-        if (!recording.getUser().getId().equals(jwtAuthenticationFilter.getAuthUser().getId())){
-            throw new ForbiddenAccessException(id);
-        }
-        recording.setReserved(true);
+        log.info("Запись с id {} удалена", id);
     }
 
     /**
@@ -144,7 +150,7 @@ public class RecordingService {
      */
     public Integer createRecordingByIdUser(RecordingCreateDTO recordingDTO) {
         User user = userService.getUserById(recordingDTO.idUser());
-        if (!user.getId().equals(jwtAuthenticationFilter.getAuthUser().getId())){
+        if (!user.getId().equals(jwtAuthenticationFilter.getAuthUser().getId())) {
             throw new ForbiddenAccessException(user.getId());
         }
         Set<CarWashService> services = recordingDTO.idServices()
@@ -157,18 +163,21 @@ public class RecordingService {
         LocalDateTime finishRecord = accessibleBox.getFinish();
         //Проверяем, есть ли записи у юзера в это время.
         if (!recordingRepository.findByUserIdAndStartAndFinishAndRemovedIsFalse(recordingDTO.idUser(), recordingDTO.start(), finishRecord).isEmpty()) {
-            log.info("У пользователя с id %d уже есть записи на это время".formatted(recordingDTO.idUser()));
-            throw new IllegalArgumentException();
+            throw new RecordingCreateException("У пользователя с id %d уже есть записи на это время".formatted(user.getId()));
         }
         //Создаем запись
-        Recording recording = new Recording();
-        recording.setUser(user);
-        recording.setStart(recordingDTO.start());
-        recording.setFinish(finishRecord);
-        recording.setCost(calculateCost(user, services));
-        recording.setBox(accessibleBox.getBox());
-        recording.setServices(services);
-        return recordingRepository.save(recording).getId();
+        Recording recording = Recording.builder()
+                .user(user)
+                .start(recordingDTO.start())
+                .created(LocalDateTime.now())
+                .finish(finishRecord)
+                .cost(calculateCost(user, services))
+                .box(accessibleBox.getBox())
+                .services(services)
+                .build();
+        Integer recordingId = recordingRepository.save(recording).getId();
+        log.info("Запись с id {} создана", recordingId);
+        return recordingId;
     }
 
     /**
@@ -189,8 +198,7 @@ public class RecordingService {
         //Проверяем, есть ли записи у юзера в это кроме той, что правим.
         LocalDateTime finishRecord = accessibleBox.getFinish();
         if (!recordingRepository.findByIdAndUserIdAndStartAndFinishAndRemovedIsFalse(user.getId(), recordingDTO.start(), finishRecord, id).isEmpty()) {
-            log.error("У пользователя с id {} уже есть записи на это время", user.getId());
-            throw new IllegalArgumentException();
+            throw new RecordingCreateException("У пользователя с id %d уже есть записи на это время".formatted(user.getId()));
         }
         //Меняем
         recording.setStart(recordingDTO.start());
@@ -198,6 +206,7 @@ public class RecordingService {
         recording.setCost(calculateCost(user, services));
         recording.setBox(accessibleBox.getBox());
         recording.setServices(services);
+        log.info("Запись с id {} изменена", id);
     }
 
     /**
@@ -207,9 +216,11 @@ public class RecordingService {
      * @return Список активных броней
      */
     @Transactional(readOnly = true)
-    public List<RecordingReservedDTO> getAllActiveReserveByIdUse(Integer userId) {
+    public List<RecordingReservedDTO> getAllActiveReserveByUserId(Integer userId) {
         checkAccessRecording(userId);
-        return recordingRepository.findAllByUser_IdAndReservedIsTrueAndCompletedIsFalse(userId).stream().map(recording -> {
+        List<RecordingReservedDTO> recordingReservedDTOS = recordingRepository.findAllByUser_IdAndReservedIsTrueAndCompletedIsFalse(userId)
+                .stream()
+                .map(recording -> {
                     RecordingReservedDTO rsd = modelMapper.map(recording, RecordingReservedDTO.class);
                     rsd.setServicesName(recording.getServices().stream()
                             .map(CarWashService::getName)
@@ -217,6 +228,8 @@ public class RecordingService {
                     return rsd;
                 })
                 .toList();
+        log.info("Получен список всех активных броней пользователя с id {}", userId);
+        return recordingReservedDTOS;
     }
 
     /**
@@ -226,26 +239,31 @@ public class RecordingService {
      * @return Список выполненных записей
      */
     @Transactional(readOnly = true)
-    public List<RecordingComplitedDTO> getAllCompletedRecordingByUserId(Integer userId) {
+    public List<RecordingCompletedDTO> getAllCompletedRecordingByUserId(Integer userId) {
         checkAccessRecording(userId);
-        return recordingRepository.findAllByUser_IdAndCompletedIsTrue(userId).stream()
-                .map(r -> modelMapper.map(r, RecordingComplitedDTO.class))
+        List<RecordingCompletedDTO> recordingCompletedDTOS = recordingRepository.findAllByUser_IdAndCompletedIsTrue(userId).stream()
+                .map(r -> modelMapper.map(r, RecordingCompletedDTO.class))
                 .toList();
+        log.info("Получен список выполненных записей пользователя с id {}", userId);
+        return recordingCompletedDTOS;
     }
 
     /**
      * Возвращает список всех записей за диапазон даты времени по идентификатору бокса.
      *
-     * @param rangeDataTimeDTO Диапазоны даты,
-     * @param idBox            Идентификатор бокса
+     * @param rangeDTDTO Диапазоны даты,
+     * @param boxId            Идентификатор бокса
      * @return Список записей.
      */
     @Transactional(readOnly = true)
-    public List<RecordingDTO> getAllRecordingsByRangeAndIdBox(RangeDataTimeDTO rangeDataTimeDTO, Integer idBox) {
-        Box box = boxService.getBoxById(idBox);
+    public List<RecordingDTO> getAllRecordingsByRangeAndIdBox(RangeDataTimeDTO rangeDTDTO, Integer boxId) {
+        Box box = boxService.getBoxById(boxId);
         boxService.checkAccessOperator(box);
-        List<Recording> recordings = recordingRepository.findByBox_IdAndStartBetween(idBox, rangeDataTimeDTO.start(), rangeDataTimeDTO.finish());
-        return getRecordingDTOS(recordings);
+        List<RecordingDTO> recordingDTOS
+                = getRecordingDTOS(recordingRepository.findByBoxAndStartBetween(box, rangeDTDTO.getStart(), rangeDTDTO.getFinish()));
+        log.info("Получен список всех записей бокса с id {}", boxId
+        );
+        return recordingDTOS;
     }
 
     /**
@@ -278,6 +296,16 @@ public class RecordingService {
                 .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
     }
 
+    /**
+     * Возвращается список всех неотмененных записей пользователя
+     *
+     * @param user Пользователь
+     * @return Список записей
+     */
+    public List<Recording> getAllRecordingsUser(User user) {
+        return recordingRepository.findAllByUserAndRemovedIsFalse(user);
+    }
+
     private RecordingInBox getBoxRecord(Set<CarWashService> services, RecordingCreateDTO recordingDTO, Integer id, Action action) {
         //Получаем базовое время выполнения всех услуг в записи
         int baseTimeAllWork = services.stream()
@@ -293,12 +321,10 @@ public class RecordingService {
                 .sorted(Comparator.comparingDouble(r -> r.getBox().getUsageRate()))
                 .toList();
         if (accessibleBoxes.isEmpty()) {
-            log.info("Свободное время отсутствует");
-            throw new IllegalArgumentException();
+            throw new RecordingCreateException("Свободное время отсутствует");
         }
         return accessibleBoxes.get(0);
     }
-
 
     private BigDecimal calculateCost(User user, Set<CarWashService> services) {
         //Получаем сумму всех услуг с учетом скидки
@@ -316,20 +342,19 @@ public class RecordingService {
             return false;
         }
         //Проверяем работает ли бокс в эти часы
-        if (start.toLocalTime().isBefore(box.getStart())
-                || finish.toLocalTime().isAfter(box.getFinish())) {
+        if (start.toLocalTime().isBefore(box.getStart()) || finish.toLocalTime().isAfter(box.getFinish())) {
             return false;
         }
         switch (action) {
             case UPDATE -> {
                 //Проверяем, есть ли другие записи в боксе в это время, не включая эту запись, т.к. она все равно будет перенесена
-                if (!recordingRepository.findByIdAndBox_IdAndRemovedIsFalse(box.getId(), start, finish, id).isEmpty()) {
+                if (!recordingRepository.findByIdAndBoxIdAndRemovedIsFalse(box.getId(), start, finish, id).isEmpty()) {
                     return false;
                 }
             }
             case SAVE -> {
                 //Проверяем, есть ли другие записи в боксе в это время
-                if (!recordingRepository.findByBox_IdAndRemovedIsFalse(box.getId(), start, finish).isEmpty()) {
+                if (!recordingRepository.findByBoxIdAndRemovedIsFalse(box.getId(), start, finish).isEmpty()) {
                     return false;
                 }
             }
@@ -337,31 +362,43 @@ public class RecordingService {
         return true;
     }
 
-    private void checkAccessRecording(Integer userId){
+    /**
+     * Вспомогательный метод проверяет возможность доступа к записи
+     * @param userId Идентификатор пользователя
+     */
+    private void checkAccessRecording(Integer userId) {
         UserDetailsCustom userDetailsCustom = jwtAuthenticationFilter.getAuthUser();
         Integer idUserCustom = userDetailsCustom.getId();
         RolesUser roleUserCustom = userDetailsCustom.getRolesUser();
-        if ((RolesUser.ROLE_OPERATOR.equals(roleUserCustom) || RolesUser.ROLE_USER.equals(roleUserCustom)) && !userId.equals(idUserCustom)){
+        if ((RolesUser.ROLE_OPERATOR.equals(roleUserCustom) || RolesUser.ROLE_USER.equals(roleUserCustom))
+                && !userId.equals(idUserCustom)) {
             throw new ForbiddenAccessException(userId);
-        } else{
+        } else {
             userService.checkUserById(userId);
         }
     }
 
-    private void checkAccessRecording(Recording recording){
+    /**
+     * Вспомогательный метод проверяет возможность доступа к записи
+     * @param recording запись
+     */
+    private void checkAccessRecording(Recording recording) {
         UserDetailsCustom userDetailsCustom = jwtAuthenticationFilter.getAuthUser();
-        switch(userDetailsCustom.getRolesUser()){
+        switch (userDetailsCustom.getRolesUser()) {
             case ROLE_USER -> {
-                if (!userDetailsCustom.getId().equals(recording.getUser().getId())){
+                if (!userDetailsCustom.getId().equals(recording.getUser().getId())) {
                     throw new ForbiddenAccessException(userDetailsCustom.getId());
                 }
             }
             case ROLE_OPERATOR -> {
                 if (!userDetailsCustom.getId().equals(recording.getUser().getId())
-                        || !userDetailsCustom.getId().equals(recording.getBox().getUser().getId())){
+                        || !userDetailsCustom.getId().equals(recording.getBox().getUser().getId())) {
                     throw new ForbiddenAccessException(userDetailsCustom.getId());
                 }
             }
+        }
+        if (!LocalDateTime.now().isBefore(recording.getStart())) {
+            throw new ForbiddenAccessException(userDetailsCustom.getId());
         }
     }
 }

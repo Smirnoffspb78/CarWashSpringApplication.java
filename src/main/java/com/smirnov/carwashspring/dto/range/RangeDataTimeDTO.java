@@ -1,15 +1,26 @@
 package com.smirnov.carwashspring.dto.range;
 
 import com.smirnov.carwashspring.validation.RangeDateOrTime;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * DTO объект для передачи диапазона периода.
- *
- * @param start  Начало периода.
- * @param finish Окончание периода.
  */
 @RangeDateOrTime
-public record RangeDataTimeDTO(LocalDateTime start, LocalDateTime finish) implements Range {
+@Getter
+@Setter
+public class RangeDataTimeDTO implements SpecifyRange {
+    /**
+     * Начало периода.
+     */
+    private LocalDateTime start;
+    /**
+     * Окончание периода.
+     */
+    private LocalDateTime finish;
+
 }

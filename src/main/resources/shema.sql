@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS users
     FOREIGN KEY (role_name) REFERENCES roles (name)
 );
 
-CREATE table IF NOT EXISTS discount_workers
+CREATE table IF NOT EXISTS employees
 (
     id                    INT PRIMARY KEY,
     min_discount_for_user INT NOT NULL DEFAULT 0,
@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS records
     user_id     INT       NOT NULL,
     start       TIMESTAMP NOT NULL,
     finish      TIMESTAMP NOT NULL,
+    created     TIMESTAMP NOT NULL,
     is_reserve  BOOLEAN   NOT NULL DEFAULT false,
     is_complete BOOLEAN   NOT NULL DEFAULT false,
     is_remove   BOOLEAN   NOT NULL DEFAULT false,

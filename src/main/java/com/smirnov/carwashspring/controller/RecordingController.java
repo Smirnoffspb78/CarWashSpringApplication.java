@@ -66,6 +66,56 @@ public class RecordingController {
     }
 
     /**
+     * Создает запись. Права доступа:
+     * - ADMIN, чей id совпадает с idUser, указанным в записи;
+     * - OPERATOR, чей id совпадает с idUser, указанным в записи;
+     * - USER, чей id совпадает с idUser, указанным в записи.
+     *
+     * @param recordingDTO DTO для создания записи
+     * @return Идентификатор записи
+     */
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_USER"})
+    public Integer createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO) {
+        log.info("POST: /recordings");
+        return recordingService.createRecordingByIdUser(recordingDTO);
+    }
+
+    /**
+     * Обновляет запись по ее идентификатору.
+     * Права доступа: ADMIN, OPERATOR, USER, чей id совпадает с id в записи (реализовано на уровне кода)
+     *
+     * @param recordingDTO Параметры записи
+     * @param id           Идентификатор записи
+     */
+    @PutMapping("/{id}/update")
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_USER"})
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO,
+                                @PathVariable(name = "id") Integer id) {
+        log.info("PUT: /recordings/update");
+        recordingService.updateRecording(id, recordingDTO);
+    }
+
+    /**
+     * Подтверждает запись по ее идентификатору.
+     * Права доступа:
+     * - ADMIN, чей id совпадает с idUser, указанным в записи;
+     * - OPERATOR, чей id совпадает с idUser, указанным в записи;
+     * - USER, чей id совпадает с idUser, указанным в записи.
+     *
+     * @param id идентификатор записи
+     */
+    @PutMapping("/{id}/approve")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_USER"})
+    public void approveRecording(@PathVariable(name = "id") Integer id) {
+        log.info("POST: /recordings/{}/approve", id);
+        recordingService.approve(id);
+    }
+
+    /**
      * Отмечает запись, как выполненную, если она не выполнена, по ее идентификатору.
      * Права доступа:
      * - ADMIN;
@@ -91,59 +141,10 @@ public class RecordingController {
      * @param id Идентификатор записи
      */
     @PutMapping("/{id}/cancellation")
-    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
     public void cancellationRecording(@PathVariable("id") Integer id) {
         log.info("PUT: /recordings/{}/cancellation", id);
         recordingService.cancellationReserveById(id);
-    }
-
-    /**
-     * Подтверждает запись по ее идентификатору.
-     * Права доступа:
-     * - ADMIN, чей id совпадает с idUser, указанным в записи;
-     * - OPERATOR, чей id совпадает с idUser, указанным в записи;
-     * - USER, чей id совпадает с idUser, указанным в записи.
-     *
-     * @param id идентификатор записи
-     */
-    @PostMapping("/{id}/approve")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_USER"})
-    public void approveRecording(@PathVariable(name = "id") Integer id) {
-        log.info("POST: /recordings/{}/approve", id);
-        recordingService.approve(id);
-    }
-
-    /**
-     * Создает запись.
-     * - ADMIN, чей id совпадает с idUser, указанным в записи;
-     * - OPERATOR, чей id совпадает с idUser, указанным в записи;
-     * - USER, чей id совпадает с idUser, указанным в записи.
-     *
-     * @param recordingDTO DTO для создания записи
-     * @return Идентификатор записи
-     */
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_USER"})
-    public Integer createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO) {
-        log.info("POST: /recordings");
-        return recordingService.createRecordingByIdUser(recordingDTO);
-    }
-
-    /**
-     * Обновляет запись по ее идентификатору.
-     * Права доступа: ADMIN, OPERATOR, USER, чей id совпадает с id в записи (реализовано на уровне кода)
-     *
-     * @param recordingDTO Параметры записи
-     * @param id           Идентификатор записи
-     */
-    @PutMapping("/{id}/update")
-    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_USER"})
-    public void updateRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO,
-                                @PathVariable(name = "id") Integer id) {
-        log.info("PUT: /recordings/update");
-        recordingService.updateRecording(id, recordingDTO);
     }
 }

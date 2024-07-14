@@ -1,4 +1,4 @@
-package com.smirnov.carwashspring.service.security;
+package com.smirnov.carwashspring.dto.response.get;
 
 import com.smirnov.carwashspring.entity.users.RolesUser;
 import lombok.EqualsAndHashCode;

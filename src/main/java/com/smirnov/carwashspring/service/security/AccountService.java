@@ -2,9 +2,10 @@ package com.smirnov.carwashspring.service.security;
 
 import com.nimbusds.jose.JOSEException;
 import com.smirnov.carwashspring.dto.request.create.UserCreateDTO;
+import com.smirnov.carwashspring.dto.response.get.UserDetailsCustom;
 import com.smirnov.carwashspring.entity.users.Role;
 import com.smirnov.carwashspring.entity.users.RolesUser;
-import com.smirnov.carwashspring.entity.users.Token;
+import com.smirnov.carwashspring.dto.response.get.Token;
 import com.smirnov.carwashspring.entity.users.User;
 import com.smirnov.carwashspring.service.UserService;
 import jakarta.transaction.Transactional;

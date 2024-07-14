@@ -2,6 +2,7 @@ package com.smirnov.carwashspring.service.security;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.proc.BadJOSEException;
+import com.smirnov.carwashspring.dto.response.get.UserDetailsCustom;
 import com.smirnov.carwashspring.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,7 +19,7 @@ import java.io.IOException;
 import java.text.ParseException;
 
 /**
- * Фильтр для обработки запросов.
+ * Сервисный слой фильтров.
  */
 @Service
 @RequiredArgsConstructor
@@ -28,20 +29,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final UserService userService;
 
+    /**
+     * Проверяет, имеет ли запрос валидный Bearer-токен
+     * @param request Запрос
+     * @param response Ответ
+     * @param filterChain Фильтр
+     * @throws ServletException
+     * @throws IOException
+     */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, // запрос
-                                    HttpServletResponse response, // ответ
-                                    FilterChain filterChain // следующий фильтр
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain
     ) throws ServletException, IOException {
-        // если запрос содержит заголовок Authorization и текст начинается с Bearer
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer")) {
+        String substringHeader = "Bearer";
+        if (authHeader == null || !authHeader.startsWith(substringHeader)) {
             filterChain.doFilter(request, response);
             return;
         }
-        // извлекаем и валидируем токен
-        String jwt = authHeader.substring(7);
-        String userName = null;
+        String jwt = authHeader.replace(substringHeader, "").replace(" ", "");
+        String userName;
         try {
             userName = jwtSecurityService.getSubject(jwt);
         } catch (BadJOSEException | ParseException | JOSEException e) {

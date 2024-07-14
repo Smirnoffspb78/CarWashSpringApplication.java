@@ -3,14 +3,9 @@ package com.smirnov.carwashspring.exception;
 
 public class  EntityNotFoundException extends RuntimeException {
 
-    private final String message;
+    private static final String MESSAGE = "%s with id %s not found";
 
     public EntityNotFoundException(Class<?> entityClass, Number id) {
-        message = entityClass.getSimpleName() + " with id " + id + " not found";
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
+        super(MESSAGE.formatted(entityClass.getSimpleName(), id));
     }
 }

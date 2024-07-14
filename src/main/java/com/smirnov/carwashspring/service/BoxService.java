@@ -8,7 +8,7 @@ import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.exception.ForbiddenAccessException;
 import com.smirnov.carwashspring.repository.BoxRepository;
 import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
-import com.smirnov.carwashspring.service.security.UserDetailsCustom;
+import com.smirnov.carwashspring.dto.response.get.UserDetailsCustom;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
@@ -31,13 +31,17 @@ public class BoxService {
      */
     private final BoxRepository boxRepository;
 
+    /**
+     * Сервисный слой записей.
+     */
     private final RecordingService recordingService;
 
     private final ModelMapper modelMapper;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public BoxService(BoxRepository boxRepository, @Lazy RecordingService recordingService, ModelMapper modelMapper, JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public BoxService(BoxRepository boxRepository, @Lazy RecordingService recordingService, ModelMapper modelMapper,
+                      JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.boxRepository = boxRepository;
         this.recordingService = recordingService;
         this.modelMapper = modelMapper;

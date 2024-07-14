@@ -1,5 +1,4 @@
-package com.smirnov.carwashspring.configuration;
-
+package com.smirnov.carwashspring.configuration.sequrity;
 
 import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +38,6 @@ public class SecurityConfiguration {
 
     /**
      * Аутентифицирует пользователя через данные из БД
-     *
      */
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -62,6 +60,7 @@ public class SecurityConfiguration {
 
     /**
      * Общие настройки доступа к endpoint.
+     *
      * @param http Запрос
      * @return Фильтр для сопоставления возможности запросов.
      * @throws Exception
@@ -70,7 +69,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authenticationProvider(authenticationProvider())
-                .authorizeHttpRequests((authz) -> authz
+                .authorizeHttpRequests(authorizationManager -> authorizationManager
                         .requestMatchers(HttpMethod.POST, "/account/registration")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/account/login")// запросы
@@ -85,10 +84,13 @@ public class SecurityConfiguration {
 
     /**
      * Шифрует пароль пользователя.
+     *
      * @return Зашифрованный пароль пользователя
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
     }
+
+
 }

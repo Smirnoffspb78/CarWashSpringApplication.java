@@ -1,6 +1,8 @@
 package com.smirnov.carwashspring.repository;
 
+import com.smirnov.carwashspring.entity.service.Box;
 import com.smirnov.carwashspring.entity.service.Recording;
+import com.smirnov.carwashspring.entity.users.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -54,21 +56,21 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
     /**
      * Возвращает список записей за определенный диапазон даты, времени по идентификатору бокса.
      *
-     * @param id     Идентификатор бокса
+     * @param box    Бокс
      * @param start  Начало диапазона
      * @param finish Конец диапазона
      * @return Список записей
      */
-    List<Recording> findByBox_IdAndStartBetween(Integer id, LocalDateTime start, LocalDateTime finish);
+    List<Recording> findByBoxAndStartBetween(Box box, LocalDateTime start, LocalDateTime finish);
 
 
     /**
      * Возвращает список неудаленных невыполненных заказов пользователя за заданный диапазон времени.
      *
      * @param userId Пользователь
-     * @param start  начало диапазона
-     * @param finish конец диапазона
-     * @return список неотмененных невыполненных заказов пользователя
+     * @param start  Начало диапазона
+     * @param finish Конец диапазона
+     * @return Список неотмененных невыполненных заказов пользователя
      */
     @Query(value = """
             SELECT rs FROM Recording rs
@@ -101,7 +103,7 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
     List<Recording> findByIdAndUserIdAndStartAndFinishAndRemovedIsFalse(Integer userId, LocalDateTime start, LocalDateTime finish, Integer id);
 
     /**
-     * Возвращает список неотмененных записей по идентификатору бокса за заданный диапазон даты, времени.
+     * Возвращает список неотмененных невыполненных записей по идентификатору бокса за заданный диапазон даты, времени.
      *
      * @param boxId  Идентификатор бокса
      * @param start  Начало диапазона
@@ -117,7 +119,7 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
             OR (rs.finish > ?2 AND rs.finish <= ?3)
             OR (rs.start <= ?2 AND rs.finish >= ?3))
             """)
-    List<Recording> findByBox_IdAndRemovedIsFalse(Integer boxId, LocalDateTime start, LocalDateTime finish);
+    List<Recording> findByBoxIdAndRemovedIsFalse(Integer boxId, LocalDateTime start, LocalDateTime finish);
 
     /**
      * Возвращает список неотмененных записей по идентификатору бокса за заданный диапазон даты, времени,
@@ -126,7 +128,7 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
      * @param boxId  Идентификатор бокса
      * @param start  Начало диапазона
      * @param finish Окончание диапазона
-     * @param id Идентификатор записи
+     * @param id     Идентификатор записи
      * @return Список записей
      */
     @Query(value = """
@@ -139,8 +141,12 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
             OR (rs.finish > ?2 AND rs.finish <= ?3)
             OR (rs.start <= ?2 AND rs.finish >= ?3))
             """)
-    List<Recording> findByIdAndBox_IdAndRemovedIsFalse(Integer boxId, LocalDateTime start, LocalDateTime finish, Integer id);
+    List<Recording> findByIdAndBoxIdAndRemovedIsFalse(Integer boxId, LocalDateTime start, LocalDateTime finish, Integer id);
 
+    /**
+     * Возвращает все неотмененные записи пользователя.
+     */
+    List<Recording> findAllByUserAndRemovedIsFalse(User user);
 
     /**
      * Возвращает список активных броней по идентификатору пользователя.
@@ -157,9 +163,23 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
     List<Recording> findAllByUser_IdAndCompletedIsTrue(Integer userId);
 
     /**
-     * Возвращает запись по ее идентификатору без подтверждения, если она еще не удалена.
+     * Возвращает неподтвержденную запись по ее идентификатору, если она еще не удалена.
+     *
      * @param id Идентификатор записи
      * @return Запись.
      */
     Optional<Recording> findByIdAndReservedIsFalseAndRemovedIsFalse(Integer id);
+
+    /**
+     * Возвращает список неподтвержденных записей за заданный диапазон
+     */
+    @Query(value =
+            """
+            SELECT rs FROM Recording rs
+            WHERE rs.removed = FALSE
+            AND rs.reserved = FALSE
+            AND rs.created <= ?1
+                    """
+    )
+    List<Recording> findAllByBetween(LocalDateTime checkTime);
 }

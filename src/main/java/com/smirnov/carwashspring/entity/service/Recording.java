@@ -16,6 +16,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
@@ -28,18 +29,17 @@ import java.util.Set;
  * Запись.
  */
 @Entity
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Getter
 @Setter
 @Table(name = "records")
 @ToString
+@Builder
 public class Recording {
     /**
      * Идентификатор записи.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     private Integer id;
 
     /**
@@ -67,21 +67,27 @@ public class Recording {
     private LocalDateTime finish;
 
     /**
+     * Дата создания записи.
+     */
+    @Column(name = "created")
+    private LocalDateTime created;
+
+    /**
      * Дата и время забронированы.
      */
-    @Column(name = "is_reserve", insertable = false)
+    @Column(name = "is_reserve")
     private boolean reserved;
 
     /**
      * Услуги предоставлены.
      */
-    @Column(name = "is_complete", insertable = false)
+    @Column(name = "is_complete")
     private boolean completed;
 
     /**
      * Услуга удалена
      */
-    @Column(name = "is_remove", insertable = false)
+    @Column(name = "is_remove")
     private boolean removed;
 
 

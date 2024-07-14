@@ -11,7 +11,7 @@ import java.math.BigDecimal;
  */
 @Getter
 @Setter
-public final class CarWashServiceDTO {
+public class CarWashServiceDTO {
     /**
      * Название услуги.
      */

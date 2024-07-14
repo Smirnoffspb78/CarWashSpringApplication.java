@@ -1,10 +1,9 @@
 package com.smirnov.carwashspring.controller;
 
 import com.smirnov.carwashspring.dto.request.create.UserCreateDTO;
-import com.smirnov.carwashspring.entity.users.Token;
+import com.smirnov.carwashspring.dto.response.get.Token;
 import com.smirnov.carwashspring.service.security.AccountService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -52,14 +51,14 @@ public class AccountController {
      * @return Токен пользователя
      */
     @PostMapping("/login")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public Token loginAccount(@RequestParam("login") @NotNull(message = "login is null") String login,
-                              @RequestParam("password") @NotNull(message = "password is null") String password) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public Token loginAccount(@RequestParam("login") String login,
+                              @RequestParam("password") String password) {
         try {
             log.info("POST: /account/login");
             return accountService.loginAccount(login, password);
         } catch (AccountException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 }

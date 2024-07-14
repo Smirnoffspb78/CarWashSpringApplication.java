@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -41,6 +42,6 @@ public final class RecordingReservedDTO {
     /**
      * Список выбранных услуг.
      */
-    private Set<String> servicesName;
+    private Set<String> servicesName = new HashSet<>();
 
 }

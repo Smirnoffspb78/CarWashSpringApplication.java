@@ -3,6 +3,7 @@ package com.smirnov.carwashspring.service.security;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.proc.BadJOSEException;
 import com.smirnov.carwashspring.dto.response.get.UserDetailsCustom;
+import com.smirnov.carwashspring.exception.JWTValidException;
 import com.smirnov.carwashspring.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -53,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             userName = jwtSecurityService.getSubject(jwt);
         } catch (BadJOSEException | ParseException | JOSEException e) {
-            throw new IOException(e);
+            throw new JWTValidException("Не удалось извлечь токен");
         }
         if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetailsCustom userDetails = userService.loadUserByUsername(userName);

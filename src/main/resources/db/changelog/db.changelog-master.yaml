@@ -1,0 +1,44 @@
+
+databaseChangeLog:
+  #Создание таблицы услуг
+  - includeAll:
+      path: db/changelog/changeset/1_0/
+  #Создание таблицы ролей
+  - includeAll:
+      path: db/changelog/changeset/1_1/
+  #Создание таблицы пользователей
+  - includeAll:
+      path: db/changelog/changeset/1_2/
+  #Создание таблицы работников
+  - includeAll:
+      path: db/changelog/changeset/1_3/
+  #Создание таблицы боксов
+  - includeAll:
+      path: db/changelog/changeset/1_4/
+  #Создание таблицы записей
+  - includeAll:
+      path: db/changelog/changeset/1_5/
+  #Создание таблицы связи записи-услуг
+  - includeAll:
+      path: db/changelog/changeset/1_6/
+  #Добавление записей ролей
+  - includeAll:
+      path: db/changelog/changeset/1_7/
+  #Добавление записей пользователей
+  - includeAll:
+      path: db/changelog/changeset/1_8/
+  #Добавление записей работников
+  - includeAll:
+      path: db/changelog/changeset/1_9/
+  #Добавление записей боксов
+  - includeAll:
+      path: db/changelog/changeset/1_10/
+  #Добавление записей услуг
+  - includeAll:
+      path: db/changelog/changeset/1_11/
+  #Добавление записей записей
+  - includeAll:
+      path: db/changelog/changeset/1_12/
+  #Добавление записей связей запись-услуги
+  - includeAll:
+      path: db/changelog/changeset/1_13/

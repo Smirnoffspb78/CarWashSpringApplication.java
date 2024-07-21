@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import static java.lang.Math.ceil;
 
 /**
- * Запись
+ * Запись.
  */
 @Service
 @RequiredArgsConstructor
@@ -103,12 +103,26 @@ public class RecordingService {
     }
 
     /**
+     * Отменяет запись по ее идентификатору (удаляет, клиент больше не может ее подтвердить).
+     *
+     * @param id Идентификатор записи
+     */
+    public void cancellationReserveById(Integer id) {
+        Recording recording = getRecordingByIdNotRemovedAndNotCompleted(id);
+        checkAccessRecording(recording);
+        recording.setReserved(false);
+        recording.setArrived(false);
+        recording.setRemoved(true);
+        log.info("{}. Запись с id {} удалена", HttpStatus.NO_CONTENT, id);
+    }
+
+    /**
      * Подтверждает запись по ее идентификатору.
      *
      * @param id Идентификатор записи
      */
     public void approve(Integer id) {
-        Recording recording = recordingRepository.findByIdAndReservedIsFalseAndRemovedIsFalse(id)
+        Recording recording = recordingRepository.findByIdAndRemovedIsFalseAndReservedIsFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
         if (!recording.getUser().getId().equals(jwtAuthenticationFilter.getAuthUser().getId())) {
             throw new ForbiddenAccessException(id);
@@ -118,29 +132,30 @@ public class RecordingService {
     }
 
     /**
+     * Отмечает клиента, как прибывшего.
+     * @param id Идентификатор записи
+     */
+    public void arrive(Integer id){
+        Recording recording = recordingRepository.findByIdAndReservedIsTrueAndArrivedIsFalse(id)
+                .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
+        if (!recording.getUser().getId().equals(jwtAuthenticationFilter.getAuthUser().getId())) {
+            throw new ForbiddenAccessException(id);
+        }
+        recording.setArrived(true);
+        log.info("{}. Клиент с id {} прибыл", HttpStatus.NO_CONTENT, jwtAuthenticationFilter.getAuthUser().getId());
+    }
+
+    /**
      * Отмечает запись, как завершенную, если она не завершена, по ее идентификатору.
      *
      * @param id Идентификатор записи
      */
     public void updateCompleteById(Integer id) {
-        Recording recordingUpdate = recordingRepository.findByIdAndCompletedIsFalseAndRemovedIsFalseAndReservedIsTrue(id)
+        Recording recordingUpdate = recordingRepository.findByIdAndArrivedIsTrueAndCompletedIsFalse(id)
                 .orElseThrow(() -> new IllegalArgumentException("Записи с таким id отсутствует или она уже завершенная"));
         boxService.checkAccessOperator(recordingUpdate.getBox());
         recordingUpdate.setCompleted(true);
         log.info("{}. Запись с id {} выполнена", HttpStatus.NO_CONTENT, id);
-    }
-
-    /**
-     * Отменяет запись по ее идентификатору (удаляет, клиент больше не может ее подтвердить).
-     *
-     * @param id Идентификатор записи
-     */
-    public void cancellationReserveById(Integer id) {
-        Recording recording = getRecordingByIdNotRemovedAndNotCompleted(id);
-        checkAccessRecording(recording);
-        recording.setReserved(false);
-        recording.setRemoved(true);
-        log.info("{}. Запись с id {} удалена", HttpStatus.NO_CONTENT, id);
     }
 
     /**

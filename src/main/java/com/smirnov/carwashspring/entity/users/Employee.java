@@ -7,7 +7,7 @@ import org.hibernate.validator.constraints.Range;
 
 
 /**
- * Скидка, предоставляемая работниками, [%].
+ * Работник.
  */
 @Entity
 @Table(name = "employees")

@@ -20,5 +20,4 @@ public interface CarWashServiceRepository extends CrudRepository<CarWashService,
     @NonNull
     @Override
     List<CarWashService> findAll();
-
 }

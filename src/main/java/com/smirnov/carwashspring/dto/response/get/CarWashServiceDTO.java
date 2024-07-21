@@ -11,6 +11,7 @@ import java.math.BigDecimal;
  */
 @Getter
 @Setter
+@ToString
 public class CarWashServiceDTO {
     /**
      * Название услуги.

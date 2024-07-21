@@ -3,6 +3,7 @@ package com.smirnov.carwashspring.service;
 import com.smirnov.carwashspring.dto.response.get.RecordingDTO;
 import com.smirnov.carwashspring.dto.request.create.BoxCreateDTO;
 import com.smirnov.carwashspring.entity.service.Box;
+import com.smirnov.carwashspring.entity.users.Employee;
 import com.smirnov.carwashspring.entity.users.RolesUser;
 import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.exception.ForbiddenAccessException;
@@ -55,9 +56,22 @@ public class BoxService {
      */
     public Integer save(BoxCreateDTO boxCreateDto) {
         Box box = modelMapper.map(boxCreateDto, Box.class);
-        Integer boxId = boxRepository.save(box).getId();
-        log.info("{}. Box save in db_car_wash with id: {}", HttpStatus.CREATED, boxId);
-        return boxId;
+        Integer id = boxRepository.save(box).getId();
+        log.info("{}. Box with id {} save in db_car_wash ", HttpStatus.CREATED, id);
+        return id;
+    }
+
+    /**
+     * Обновляет информацию по боксу
+     */
+    public void updateBox(Integer id, BoxCreateDTO boxCreateDTO){
+        if (!boxRepository.existsById(id)){
+            throw new EntityNotFoundException(Box.class, id);
+        }
+        Box box = modelMapper.map(boxCreateDTO, Box.class);
+        box.setId(id);
+        boxRepository.save(box);
+        log.info("{}, Box with id {} update in db_car_wash ", HttpStatus.NO_CONTENT, id);
     }
 
     /**

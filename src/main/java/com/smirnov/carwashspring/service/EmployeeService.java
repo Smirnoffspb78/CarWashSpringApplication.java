@@ -25,19 +25,22 @@ public class EmployeeService {
     }
 
     /**
-     * Скидка оператора.
+     * Репозиторий работников.
      */
     private final EmployeeRepository employeeRepository;
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
+    /**
+     * Сервисный слой пользователей.
+     */
     private final UserService userService;
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * Обновляет минимальную или максимальную скидку, предоставляемую оператором.
      * Уровень доступа: ADMIN.
      *
-     * @param id           Идентификатор пользователя
+     * @param id           Идентификатор работника
      * @param discount     Скидка
      * @param typeDiscount Тип скидки, принимает значения min или max.
      */
@@ -95,10 +98,10 @@ public class EmployeeService {
      * @param id Идентификатор скидки
      * @return Скидка
      */
-    private Employee getEmployeeById(Integer id) {
+    public Employee getEmployeeById(Integer id) {
         Employee employee =  employeeRepository.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException(Employee.class, id));
-        log.info("Получена скидка с id {}", id);
+        log.info("Получен работник с id {}", id);
         return employee;
     }
 }

@@ -75,23 +75,28 @@ public class Recording {
     private LocalDateTime created;
 
     /**
+     * Услуга удалена.
+     */
+    @Column(name = "is_remove")
+    private boolean removed;
+
+    /**
      * Дата и время забронированы.
      */
     @Column(name = "is_reserve")
-    private boolean reserved;
+    private boolean reserved ;
+
+    /**
+     * Пользователь отметился по прибытии.
+     */
+    @Column(name = "is_arrive")
+    private boolean arrived;
 
     /**
      * Услуги предоставлены.
      */
     @Column(name = "is_complete")
     private boolean completed;
-
-    /**
-     * Услуга удалена
-     */
-    @Column(name = "is_remove")
-    private boolean removed;
-
 
     /**
      * Стоимоcть услуг с учетом скидки.

@@ -99,6 +99,23 @@ public class RecordingController {
     }
 
     /**
+     * Удаляет запись по ее идентификатору.
+     * Права доступа:
+     * - ADMIN;
+     * - OPERATOR, если работает в этом боксе или является пользователем этой записи;
+     * - USER, если является пользователем этой записи.
+     *
+     * @param id Идентификатор записи
+     */
+    @PutMapping("/{id}/cancellation")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
+    public void cancellationRecording(@PathVariable("id") Integer id) {
+        log.info("PUT: /recordings/{}/cancellation", id);
+        recordingService.cancellationReserveById(id);
+    }
+
+    /**
      * Подтверждает запись по ее идентификатору.
      * Права доступа:
      * - ADMIN, чей id совпадает с idUser, указанным в записи;
@@ -116,6 +133,23 @@ public class RecordingController {
     }
 
     /**
+     * Ставит в записи отметку о прибытии по ее идентификатору.
+     * Права доступа:
+     * - ADMIN, чей id совпадает с idUser, указанным в записи;
+     * - OPERATOR, чей id совпадает с idUser, указанным в записи;
+     * - USER, чей id совпадает с idUser, указанным в записи.
+     *
+     * @param id идентификатор записи
+     */
+    @PutMapping("/{id}/arrive")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_USER"})
+    public void arriveRecording(@PathVariable(name = "id") Integer id){
+        log.info("POST: /recordings/{}/arrive", id);
+        recordingService.arrive(id);
+    }
+
+    /**
      * Отмечает запись, как выполненную, если она не выполнена, по ее идентификатору.
      * Права доступа:
      * - ADMIN;
@@ -129,22 +163,5 @@ public class RecordingController {
     public void updateRecordCompleted(@PathVariable(name = "id") Integer id) {
         log.info("PUT: /recordings/{}/completed/", id);
         recordingService.updateCompleteById(id);
-    }
-
-    /**
-     * Удаляет запись по ее идентификатору.
-     * Права доступа:
-     * - ADMIN;
-     * - OPERATOR, если работает в этом боксе или является пользователем этой записи;
-     * - USER, если является пользователем этой записи.
-     *
-     * @param id Идентификатор записи
-     */
-    @PutMapping("/{id}/cancellation")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
-    public void cancellationRecording(@PathVariable("id") Integer id) {
-        log.info("PUT: /recordings/{}/cancellation", id);
-        recordingService.cancellationReserveById(id);
     }
 }

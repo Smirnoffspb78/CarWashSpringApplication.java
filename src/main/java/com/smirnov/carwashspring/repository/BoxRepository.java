@@ -19,5 +19,4 @@ public interface BoxRepository extends CrudRepository<Box, Integer> {
      */
     @NonNull
     List<Box> findAll();
-
 }

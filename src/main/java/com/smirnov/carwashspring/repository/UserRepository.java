@@ -44,6 +44,4 @@ public interface UserRepository extends CrudRepository<User, Integer> {
      * @return Пользователь
      */
     Optional<User> findByLoginAndDeletedIsFalse(String login);
-
-
 }

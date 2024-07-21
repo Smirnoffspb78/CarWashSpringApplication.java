@@ -35,7 +35,6 @@ public class CarWashServiceService {
      *
      * @return Список услуг
      */
-
     @Transactional(readOnly = true)
     public List<CarWashServiceDTO> getAllServices() {
         List<CarWashServiceDTO> carWashServiceDTOS = carWashServiceRepository.findAll().stream()

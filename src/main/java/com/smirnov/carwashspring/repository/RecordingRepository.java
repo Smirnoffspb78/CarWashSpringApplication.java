@@ -29,12 +29,12 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
     Optional<BigDecimal> findSumByRange(LocalDateTime start, LocalDateTime finish);
 
     /**
-     * Возвращает запись по идентификатору, если запись не выполнена.
+     * Возвращает запись по идентификатору, если клиент отметился о прибытии и если запись не выполнена.
      *
      * @param id Идентификатор записи
      * @return Запись, если она выполнена
      */
-    Optional<Recording> findByIdAndCompletedIsFalseAndRemovedIsFalseAndReservedIsTrue(Integer id);
+    Optional<Recording> findByIdAndArrivedIsTrueAndCompletedIsFalse(Integer id);
 
     /**
      * Возвращает запись по ее идентификатору, если она не отменена и не выполнена.
@@ -168,7 +168,15 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
      * @param id Идентификатор записи
      * @return Запись.
      */
-    Optional<Recording> findByIdAndReservedIsFalseAndRemovedIsFalse(Integer id);
+    Optional<Recording> findByIdAndRemovedIsFalseAndReservedIsFalse(Integer id);
+
+    /**
+     * Возвращает подтвержденную запись по ее идентификатору, если она клиент еще не прибыл.
+     *
+     * @param id Идентификатор записи
+     * @return Запись.
+     */
+    Optional<Recording> findByIdAndReservedIsTrueAndArrivedIsFalse(Integer id);
 
     /**
      * Возвращает список неподтвержденных записей за заданный диапазон
@@ -178,8 +186,11 @@ public interface RecordingRepository extends CrudRepository<Recording, Integer> 
             SELECT rs FROM Recording rs
             WHERE rs.removed = FALSE
             AND rs.reserved = FALSE
-            AND rs.created <= ?1
+            AND rs.arrived = FALSE
+            AND (rs.created <= ?1
+            OR rs.start<=?2
+            )
                     """
     )
-    List<Recording> findAllByBetween(LocalDateTime checkTime);
+    List<Recording> findAllByBetween(LocalDateTime checkTime, LocalDateTime checkArrivalTime);
 }

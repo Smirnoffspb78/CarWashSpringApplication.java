@@ -19,21 +19,6 @@ spring:
     enabled: true
   change-log:
     classpath: db/changelog/db.changelog-master.yaml
-  main:
-    banner-mode: off
-  mail:
-    username: ${LOGIN_MAIL}
-    password: ${PASSWORD_MAIL}
-    port: 587
-    host: smtp.yandex.ru
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
-
 
 source:
   driver-class-name: org.postgresql.Driver

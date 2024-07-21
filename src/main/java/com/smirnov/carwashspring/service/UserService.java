@@ -114,6 +114,11 @@ public class UserService implements UserDetailsService {
     }
 
 
+    /**
+     * Возвращает пользователя по его идентификатору
+     * @param id Идентификатор пользователя
+     * @return Пользователь
+     */
     public User getUserById(Integer id) {
         return userRepository.findByIdAndDeletedIsFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException(User.class, id));

@@ -1,9 +1,7 @@
 package com.smirnov.carwashspring.validation.validator;
 
-import com.smirnov.carwashspring.dto.request.create.BoxCreateDTO;
 import com.smirnov.carwashspring.dto.range.SpecifyRange;
 import com.smirnov.carwashspring.validation.RangeDateOrTime;
-import com.smirnov.carwashspring.dto.range.RangeDataTimeDTO;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.extern.slf4j.Slf4j;
@@ -26,13 +24,10 @@ public class RangeLocalDateTimeValidator implements ConstraintValidator<RangeDat
 
     @Override
     public boolean isValid(SpecifyRange value, ConstraintValidatorContext context) {
-        if (value == null) {
-            log.error("RangeDataTimeDTO or is null");
+        if (value == null || value.getStart() == null || value.getFinish() == null) {
+            log.error("RangeDataTimeDTO or components is null");
             context.disableDefaultConstraintViolation();
             return false;
-        }
-        if (value.getStart() == null || value.getFinish() == null) {
-            return messageNull(context);
         }
         if (value.getStart() instanceof LocalTime startValue && value.getFinish() instanceof LocalTime finishValue){
             if (startValue.isAfter(finishValue)) {
@@ -46,12 +41,6 @@ public class RangeLocalDateTimeValidator implements ConstraintValidator<RangeDat
             }
             return true;
         }
-        return false;
-    }
-    
-    private boolean messageNull(ConstraintValidatorContext context){
-        log.error("RangeDataTimeDTO or components is null");
-        context.disableDefaultConstraintViolation();
         return false;
     }
 

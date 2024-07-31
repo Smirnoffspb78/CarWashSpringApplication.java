@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.temporal.Temporal;
 import java.util.Objects;
 
 /**
@@ -23,4 +24,9 @@ public class RangeDataTimeDTO implements SpecifyRange {
      */
     private LocalDateTime finish;
 
+    @Override
+    public int compare(Temporal o1, Temporal o2) {
+
+        return 0;
+    }
 }

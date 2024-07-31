@@ -46,14 +46,11 @@ public class UserService implements UserDetailsService {
      */
     private final RecordingService recordingService;
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
     private final ModelMapper modelMapper;
 
     public UserService(UserRepository userRepository, @Lazy JwtAuthenticationFilter jwtAuthenticationFilter,
                        @Lazy RecordingService recordingService, ModelMapper modelMapper) {
         this.userRepository = userRepository;
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.recordingService = recordingService;
         this.modelMapper = modelMapper;
     }
@@ -102,11 +99,11 @@ public class UserService implements UserDetailsService {
      *
      * @param id Идентификатор USER
      */
-    public void deleteUser(Integer id) {
-        User user = getUserById(id);
-        if (!id.equals(jwtAuthenticationFilter.getAuthUser().getId())) {
+    public void deleteUser(Integer id, Integer userId) {
+        if (!id.equals(userId)) {
             throw new ForbiddenAccessException(id);
         }
+        User user = getUserById(id);
         user.getRecordings().stream()
                 .filter(Recording::isReserved)
                 .forEach(recording -> recording.setReserved(false));
@@ -140,7 +137,6 @@ public class UserService implements UserDetailsService {
     public UserDetailsCustom loadUserByUsername(String username) {
         User user = userRepository.findByLoginAndDeletedIsFalse(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
         GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(
                 user.getRole().getRolesUser().name()
         );

@@ -1,6 +1,7 @@
 package com.smirnov.carwashspring.controller;
 
 
+import com.smirnov.carwashspring.enums.TypeDiscount;
 import com.smirnov.carwashspring.service.EmployeeService;
 import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
 import jakarta.validation.constraints.Pattern;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -43,8 +45,7 @@ public class EmployeeController {
                                       @Range(min = 0, max = 100, message = "Скидка должна быть в диапазоне от 0 до 100")
                                       int discount,
                                       @RequestParam(name = "typeDiscount")
-                                      @Pattern(regexp = "max|min")
-                                      String typeDiscount) {
+                                      TypeDiscount typeDiscount) {
         log.info("PUT: /employees/{}/{}/{}", id, discount, typeDiscount);
         employeeService.updateDiscountForUser(id, discount, typeDiscount);
     }
@@ -52,21 +53,25 @@ public class EmployeeController {
     /**
      * Назначает скидку пользователю.
      * Права доступа: ADMIN, OPERATOR.
+     *
      * @param discount скидка
-     * @param idUser идентификатор пользователя
+     * @param userId   идентификатор пользователя
      */
-    @PutMapping("/{id}/{discount}")
+    @PutMapping("/{id}/{discount}/{employeeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
+    @PreAuthorize("authentication.principal.id == #employeeId")
     public void activateDiscountUser(@PathVariable(name = "discount") @Positive(message = "discount должен быть положительным") int discount,
-                                     @PathVariable(name = "id") Integer idUser) {
-        log.info("PUT: /employees/{}/{}", idUser, discount);
-        employeeService.activateDiscount(discount, idUser);
+                                     @PathVariable(name = "id") Integer userId,
+                                     @PathVariable(name = "employeeId") Integer employeeId) {
+        log.info("PUT: /employees/{}/{}", userId, discount);
+        employeeService.activateDiscount(discount, userId, employeeId);
     }
 
     /**
      * Удаляет скидку пользователя по его идентификатору.
      * Уровень доступа: ADMIN, OPERATOR
+     *
      * @param id Идентификатор пользователя
      */
     @PutMapping("/{id}/deactivate-discount")

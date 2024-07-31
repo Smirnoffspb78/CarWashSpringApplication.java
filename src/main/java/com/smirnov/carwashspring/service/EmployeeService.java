@@ -2,6 +2,7 @@ package com.smirnov.carwashspring.service;
 
 import com.smirnov.carwashspring.entity.users.Employee;
 import com.smirnov.carwashspring.entity.users.User;
+import com.smirnov.carwashspring.enums.TypeDiscount;
 import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.repository.EmployeeRepository;
 import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
@@ -17,12 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class EmployeeService {
 
-    /**
-     * Тип скидки.
-     */
-    private enum TypeDiscount {
-        MIN, MAX
-    }
+
 
     /**
      * Репозиторий работников.
@@ -34,8 +30,6 @@ public class EmployeeService {
      */
     private final UserService userService;
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
     /**
      * Обновляет минимальную или максимальную скидку, предоставляемую оператором.
      * Уровень доступа: ADMIN.
@@ -46,10 +40,9 @@ public class EmployeeService {
      */
     public void updateDiscountForUser(Integer id,
                                       int discount,
-                                      String typeDiscount) {
+                                      TypeDiscount typeDiscount) {
         Employee employee = getEmployeeById(id);
-        TypeDiscount typeDiscountEnum = TypeDiscount.valueOf(typeDiscount.toUpperCase());
-        switch (typeDiscountEnum) {
+        switch (typeDiscount) {
             case MIN -> {
                 if (discount > employee.getMaxDiscountForUsers()) {
                     throw new IllegalArgumentException("minDiscountForUsers не должен быть больше, чем max");
@@ -70,16 +63,16 @@ public class EmployeeService {
      * Назначает скидку пользователю по идентификатору
      *
      * @param discount   Размер скидки, [%]
-     * @param idUser     Идентификатор пользователя
+     * @param userId     Идентификатор пользователя
      */
-    public void activateDiscount(int discount, Integer idUser) {
-        User user = userService.getUserById(idUser);
-        Integer operatorId = jwtAuthenticationFilter.getAuthUser().getId();
+    public void activateDiscount(int discount, Integer userId, Integer operatorId) {
+        User user = userService.getUserById(userId);
         Employee employee = getEmployeeById(operatorId);
         if (discount > employee.getMaxDiscountForUsers() || discount < employee.getMinDiscountForUsers()) {
             throw new IllegalArgumentException("discount должен быть в диапазоне от MinDiscount до MaxDiscount");
         }
         user.setDiscount(discount);
+        log.info("Пользователю с id {} назначена скидка {}% оператором с id {}", userId, discount, operatorId);
     }
 
     /**

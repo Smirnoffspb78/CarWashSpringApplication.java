@@ -1,22 +1,26 @@
 package com.smirnov.carwashspring.service;
 
-import com.smirnov.carwashspring.dto.response.get.UserDetailsCustom;
 import com.smirnov.carwashspring.entity.users.Employee;
-import com.smirnov.carwashspring.entity.users.Role;
-import com.smirnov.carwashspring.entity.users.RolesUser;
 import com.smirnov.carwashspring.entity.users.User;
+import com.smirnov.carwashspring.enums.TypeDiscount;
+import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.repository.EmployeeRepository;
-import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
+import static com.smirnov.carwashspring.AppTest.ILLEGAL_ID;
+import static com.smirnov.carwashspring.AppTest.getEmployee;
+import static com.smirnov.carwashspring.AppTest.getUserWithId2;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
@@ -38,148 +42,102 @@ class EmployeeServiceTest {
      */
     @Mock
     private UserService userService;
-    @Mock
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-
-    @Test
-    void updateDiscountForUser_MinDiscount() {
-        Optional<Employee> optionalEmployee = Optional.of(getEmployee());
-        Employee employee = optionalEmployee.orElseThrow();
-
-        doReturn(optionalEmployee).when(employeeRepository).findById(employee.getId());
-
-        int minDiscount = 8;
-        String typeDiscount = "min";
-        employeeService.updateDiscountForUser(employee.getId(), minDiscount, typeDiscount);
-
-        assertEquals(minDiscount, employee.getMinDiscountForUsers());
+    private static Stream<Arguments> validMinMax() {
+        return Stream.of(
+                Arguments.of(TypeDiscount.MIN, 8),
+                Arguments.of(TypeDiscount.MAX, 21)
+        );
     }
 
-    @Test
-    void updateDiscountForUser_MinDiscountThrow() {
-        Optional<Employee> optionalEmployee = Optional.of(getEmployee());
-        Employee employee = optionalEmployee.orElseThrow();
-
-        doReturn(optionalEmployee).when(employeeRepository).findById(employee.getId());
-
-        int minDiscount = 21;
-        String typeDiscount = "min";
-
-        assertThrows(IllegalArgumentException.class, () -> employeeService.updateDiscountForUser(employee.getId(), minDiscount, typeDiscount));
+    private static Stream<Arguments> invalidMinMax() {
+        return Stream.of(
+                Arguments.of(TypeDiscount.MIN, 21),
+                Arguments.of(TypeDiscount.MAX, 9)
+        );
     }
 
-    @Test
-    void updateDiscountForUser_MaxDiscount() {
-        Optional<Employee> optionalEmployee = Optional.of(getEmployee());
-        Employee employee = optionalEmployee.orElseThrow();
+    @ParameterizedTest
+    @MethodSource("validMinMax")
+    void updateDiscountForUser_MinDiscount(TypeDiscount typeDiscount, int discount) {
+        Employee employee = getEmployee();
 
-        doReturn(optionalEmployee).when(employeeRepository).findById(employee.getId());
+        doReturn(Optional.of(employee)).when(employeeRepository).findById(employee.getId());
 
-        int maxDiscount = 21;
-        String typeDiscount = "max";
-        employeeService.updateDiscountForUser(employee.getId(), maxDiscount, typeDiscount);
+        employeeService.updateDiscountForUser(employee.getId(), discount, typeDiscount);
 
-        assertEquals(maxDiscount, employee.getMaxDiscountForUsers());
+        switch (typeDiscount){
+            case MIN -> assertEquals(discount, employee.getMinDiscountForUsers());
+            case MAX -> assertEquals(discount, employee.getMaxDiscountForUsers());
+        }
     }
 
-    @Test
-    void updateDiscountForUser_MaxDiscountThrow() {
-        Optional<Employee> optionalEmployee = Optional.of(getEmployee());
-        Employee employee = optionalEmployee.orElseThrow();
+    @ParameterizedTest
+    @MethodSource("invalidMinMax")
+    void updateDiscountForUser_MinMaxDiscount_IllegalArgumentException(TypeDiscount typeDiscount, int discount) {
+        Employee employee = getEmployee();
 
-        doReturn(optionalEmployee).when(employeeRepository).findById(employee.getId());
+        doReturn(Optional.of(employee)).when(employeeRepository).findById(employee.getId());
 
-        int maxDiscount = 9;
-        String typeDiscount = "max";
-
-        assertThrows(IllegalArgumentException.class, () -> employeeService.updateDiscountForUser(employee.getId(), maxDiscount, typeDiscount));
+        assertThrows(IllegalArgumentException.class, () -> employeeService.updateDiscountForUser(employee.getId(), discount, typeDiscount));;
     }
 
-    @Test
-    void activateDiscount_ThrowIllegalArgumentForRightBorder() {
+    @ParameterizedTest
+    @ValueSource(ints = {31, 9})
+    void activateDiscount_ThrowIllegalArgumentForRightLeftBorder(int discount) {
         User user = getUserWithId2();
-        Optional<Employee> optionalEmployee = Optional.of(getEmployee());
-        Employee employee = optionalEmployee.orElseThrow();
-        UserDetailsCustom userDetailsCustom = new UserDetailsCustom(employee.getName(), employee.getPassword(),
-                List.of(new SimpleGrantedAuthority(employee.getRole().getRolesUser().name())), employee.getId());
+        Employee employee = getEmployee();
+        Integer userId = user.getId();
+        Integer employeeId = employee.getId();
 
-        doReturn(user).when(userService).getUserById(2);
-        doReturn(userDetailsCustom).when(jwtAuthenticationFilter).getAuthUser();
-        doReturn(optionalEmployee).when(employeeRepository).findById(employee.getId());
+        doReturn(user).when(userService).getUserById(userId);
+        doReturn(Optional.of(employee)).when(employeeRepository).findById(employeeId);
 
-        assertThrows(IllegalArgumentException.class, () -> employeeService.activateDiscount(31, 2));
-    }
-
-    @Test
-    void activateDiscount_ThrowIllegalArgumentForLeftBorder() {
-        User user = getUserWithId2();
-        Optional<Employee> optionalEmployee = Optional.of(getEmployee());
-        Employee employee = optionalEmployee.orElseThrow();
-        UserDetailsCustom userDetailsCustom = new UserDetailsCustom(employee.getName(), employee.getPassword(),
-                List.of(new SimpleGrantedAuthority(employee.getRole().getRolesUser().name())), employee.getId());
-
-        doReturn(user).when(userService).getUserById(2);
-        doReturn(userDetailsCustom).when(jwtAuthenticationFilter).getAuthUser();
-        doReturn(optionalEmployee).when(employeeRepository).findById(1);
-
-        assertThrows(IllegalArgumentException.class, () -> employeeService.activateDiscount(9, 2));
+        assertThrows(IllegalArgumentException.class, () -> employeeService.activateDiscount(discount, userId, employeeId));
     }
 
     @Test
     void activateDiscount_ForUserWithId2() {
         User user = getUserWithId2();
-        Optional<Employee> optionalEmployee = Optional.of(getEmployee());
-        Employee employee = optionalEmployee.orElseThrow();
-        UserDetailsCustom userDetailsCustom = new UserDetailsCustom(employee.getName(), employee.getPassword(),
-                List.of(new SimpleGrantedAuthority(employee.getRole().getRolesUser().name())), employee.getId());
+        Employee employee = getEmployee();
+        Integer userId = user.getId();
+        Integer employeeId = employee.getId();
+        final int discount = 10;
 
-        doReturn(user).when(userService).getUserById(user.getId());
-        doReturn(userDetailsCustom).when(jwtAuthenticationFilter).getAuthUser();
-        doReturn(optionalEmployee).when(employeeRepository).findById(employee.getId());
+        doReturn(user).when(userService).getUserById(userId);
+        doReturn(Optional.of(employee)).when(employeeRepository).findById(employeeId);
 
-        int discount = 10;
-        employeeService.activateDiscount(discount, user.getId());
+        employeeService.activateDiscount(discount, userId, employeeId);
         assertEquals(user.getDiscount(), discount);
     }
 
     @Test
     void deactivateDiscount_ReturnUserDiscount0() {
         User user = getUserWithId2();
+        final int zeroDiscount = 0;
+
         doReturn(user).when(userService).getUserById(user.getId());
         employeeService.deactivateDiscount(user.getId());
-        int zeroDiscount = 0;
+
         assertEquals(user.getDiscount(), zeroDiscount);
     }
 
     @Test
     void getEmployeeById_ReturnEmployeeId1() {
-        Optional<Employee> optionalEmployee = Optional.of(getEmployee());
-        Employee employee = optionalEmployee.orElseThrow();
-        doReturn(optionalEmployee).when(employeeRepository).findById(employee.getId());
+        Employee employee = getEmployee();
+        Integer employeeId = employee.getId();
 
+        doReturn(Optional.of(employee)).when(employeeRepository).findById(employeeId);
+        Employee employeeTest = employeeService.getEmployeeById(employeeId);
 
-        Employee employeeTest = employeeService.getEmployeeById(employee.getId());
-        assertEquals(employeeTest, optionalEmployee.orElseThrow());
+        assertEquals(employeeTest, employee);
     }
 
+    @Test
+    void getEmployeeById_EntityNotFoundException() {
 
-    private Employee getEmployee() {
-        Employee employee = new Employee();
-        employee.setId(1);
-        employee.setLogin("login");
-        employee.setPassword("123456789");
-        employee.setName("name");
-        employee.setRole(new Role(RolesUser.ROLE_OPERATOR));
-        employee.setMinDiscountForUsers(10);
-        employee.setMaxDiscountForUsers(20);
-        return employee;
-    }
+        doReturn(Optional.empty()).when(employeeRepository).findById(ILLEGAL_ID);
 
-    private User getUserWithId2() {
-        User user = new User();
-        user.setId(2);
-        user.setDiscount(5);
-        return user;
+        assertThrows(EntityNotFoundException.class, () -> employeeService.getEmployeeById(ILLEGAL_ID));
     }
 }

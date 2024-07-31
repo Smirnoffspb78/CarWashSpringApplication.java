@@ -72,15 +72,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
-
-    /**
-     * Возвращает аутентифицированного пользователя.
-     * @return аутентифицированный пользователь.
-     */
-    public UserDetailsCustom getAuthUser(){
-        return  (UserDetailsCustom) SecurityContextHolder.getContextHolderStrategy()
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-    }
 }

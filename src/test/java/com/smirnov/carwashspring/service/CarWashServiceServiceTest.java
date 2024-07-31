@@ -3,6 +3,7 @@ package com.smirnov.carwashspring.service;
 import com.smirnov.carwashspring.dto.request.create.CarWashServiceCreateDTO;
 import com.smirnov.carwashspring.dto.response.get.CarWashServiceDTO;
 import com.smirnov.carwashspring.entity.service.CarWashService;
+import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.repository.CarWashServiceRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +16,13 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import static com.smirnov.carwashspring.AppTest.ILLEGAL_ID;
+import static com.smirnov.carwashspring.AppTest.getCarWashService01;
+import static com.smirnov.carwashspring.AppTest.getCarWashService02;
+import static com.smirnov.carwashspring.AppTest.getCarWashServiceDTO01;
+import static com.smirnov.carwashspring.AppTest.getCarWashServiceDTO02;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 
 
@@ -32,7 +39,7 @@ class CarWashServiceServiceTest {
     CarWashServiceService carWashServiceService;
 
     @Test
-    void getAllServices() {
+    void getAllServices_ListCarWashServiceDTO() {
         List<CarWashService> carWashServices = List.of(getCarWashService01(), getCarWashService02());
         CarWashServiceDTO carWashServiceDTO01 = getCarWashServiceDTO01();
         CarWashServiceDTO carWashServiceDTO02 = getCarWashServiceDTO02();
@@ -49,50 +56,26 @@ class CarWashServiceServiceTest {
     void save() {
         CarWashService carWashService = getCarWashService01();
         CarWashServiceCreateDTO carWashServiceDTO = new CarWashServiceCreateDTO(carWashService.getName(), carWashService.getPrice(), carWashService.getTime());
+
         doReturn(carWashService).when(modelMapper).map(carWashServiceDTO, CarWashService.class);
         doReturn(carWashService).when(carWashServiceRepository).save(carWashService);
+
         assertEquals(carWashServiceService.save(carWashServiceDTO), carWashService.getId());
     }
 
     @Test
     void getServiceById() {
-        Optional<CarWashService> optionalCarWashService = Optional.of(getCarWashService01());
-        CarWashService carWashService = optionalCarWashService.orElseThrow();
-        doReturn(optionalCarWashService).when(carWashServiceRepository).findById(carWashService.getId());
+        CarWashService carWashService = getCarWashService01();
+
+        doReturn(Optional.of(carWashService)).when(carWashServiceRepository).findById(carWashService.getId());
+
         assertEquals(carWashService, carWashServiceService.getServiceById(carWashService.getId()));
     }
 
-    private CarWashService getCarWashService01(){
-        CarWashService carWashService = new CarWashService();
-        carWashService.setId(1);
-        carWashService.setName("name");
-        carWashService.setTime(20);
-        carWashService.setPrice(new BigDecimal(2000));
-        return carWashService;
-    }
+    @Test
+    void getServiceById_EntityNotFoundException() {
+        doReturn(Optional.empty()).when(carWashServiceRepository).findById(ILLEGAL_ID);
 
-    private CarWashService getCarWashService02(){
-        CarWashService carWashService = new CarWashService();
-        carWashService.setId(2);
-        carWashService.setName("name02");
-        carWashService.setTime(20);
-        carWashService.setPrice(new BigDecimal(2000));
-        return carWashService;
-    }
-
-    private CarWashServiceDTO getCarWashServiceDTO01(){
-        CarWashServiceDTO carWashService = new CarWashServiceDTO();
-        carWashService.setName("name");
-        carWashService.setTime(20);
-        carWashService.setPrice(new BigDecimal(2000));
-        return carWashService;
-    }
-
-    private CarWashServiceDTO getCarWashServiceDTO02(){
-        CarWashServiceDTO carWashService = new CarWashServiceDTO();
-        carWashService.setName("name02");
-        carWashService.setTime(20);
-        carWashService.setPrice(new BigDecimal(2000));
-        return carWashService;
+        assertThrows(EntityNotFoundException.class, ()->carWashServiceService.getServiceById(ILLEGAL_ID));
     }
 }

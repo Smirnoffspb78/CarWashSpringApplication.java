@@ -14,8 +14,6 @@ import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.exception.ForbiddenAccessException;
 import com.smirnov.carwashspring.exception.RecordingCreateException;
 import com.smirnov.carwashspring.repository.RecordingRepository;
-import com.smirnov.carwashspring.service.security.JwtAuthenticationFilter;
-import com.smirnov.carwashspring.dto.response.get.UserDetailsCustom;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -72,8 +70,6 @@ public class RecordingService {
 
     private final ModelMapper modelMapper;
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
     /**
      * Подсчитывает выручку за заданный промежуток времени.
      *
@@ -107,9 +103,9 @@ public class RecordingService {
      *
      * @param id Идентификатор записи
      */
-    public void cancellationReserveById(Integer id) {
+    public void cancellationReserveById(Integer id, Integer authUserId) {
         Recording recording = getRecordingByIdNotRemovedAndNotCompleted(id);
-        checkAccessRecording(recording);
+        checkAccessRecording(recording, authUserId);
         recording.setReserved(false);
         recording.setArrived(false);
         recording.setRemoved(true);
@@ -124,25 +120,20 @@ public class RecordingService {
     public void approve(Integer id) {
         Recording recording = recordingRepository.findByIdAndRemovedIsFalseAndReservedIsFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
-        if (!recording.getUser().getId().equals(jwtAuthenticationFilter.getAuthUser().getId())) {
-            throw new ForbiddenAccessException(id);
-        }
         recording.setReserved(true);
         log.info("{}. Запись с id {} подтверждена", HttpStatus.NO_CONTENT, id);
     }
 
     /**
      * Отмечает клиента, как прибывшего.
+     *
      * @param id Идентификатор записи
      */
-    public void arrive(Integer id){
+    public void arrive(Integer id, Integer userId) {
         Recording recording = recordingRepository.findByIdAndReservedIsTrueAndArrivedIsFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
-        if (!recording.getUser().getId().equals(jwtAuthenticationFilter.getAuthUser().getId())) {
-            throw new ForbiddenAccessException(id);
-        }
         recording.setArrived(true);
-        log.info("{}. Клиент с id {} прибыл", HttpStatus.NO_CONTENT, jwtAuthenticationFilter.getAuthUser().getId());
+        log.info("{}. Клиент с id {} прибыл", HttpStatus.NO_CONTENT, userId);
     }
 
     /**
@@ -150,10 +141,10 @@ public class RecordingService {
      *
      * @param id Идентификатор записи
      */
-    public void updateCompleteById(Integer id) {
+    public void updateCompleteById(Integer id, Integer operatorId) {
         Recording recordingUpdate = recordingRepository.findByIdAndArrivedIsTrueAndCompletedIsFalse(id)
-                .orElseThrow(() -> new IllegalArgumentException("Записи с таким id отсутствует или она уже завершенная"));
-        boxService.checkAccessOperator(recordingUpdate.getBox());
+                .orElseThrow(() -> new EntityNotFoundException(Recording.class, id));
+        boxService.checkAccessOperator(recordingUpdate.getBox(), operatorId);
         recordingUpdate.setCompleted(true);
         log.info("{}. Запись с id {} выполнена", HttpStatus.NO_CONTENT, id);
     }
@@ -166,9 +157,6 @@ public class RecordingService {
      */
     public Integer createRecordingByIdUser(RecordingCreateDTO recordingDTO) {
         User user = userService.getUserById(recordingDTO.idUser());
-        if (!user.getId().equals(jwtAuthenticationFilter.getAuthUser().getId())) {
-            throw new ForbiddenAccessException(user.getId());
-        }
         Set<CarWashService> services = recordingDTO.idServices()
                 .stream()
                 .map(carWashServiceService::getServiceById)
@@ -201,9 +189,9 @@ public class RecordingService {
      * @param id           Идентификатор записи
      * @param recordingDTO Новые параметры записи
      */
-    public void updateRecording(Integer id, RecordingCreateDTO recordingDTO) {
+    public void updateRecording(Integer id, RecordingCreateDTO recordingDTO, Integer authUserId) {
         Recording recording = getRecordingByIdNotRemovedAndNotCompleted(id);
-        checkAccessRecording(recording);
+        checkAccessRecording(recording, authUserId);
         User user = recording.getUser();
         Set<CarWashService> services = recordingDTO.idServices()
                 .stream()
@@ -231,8 +219,8 @@ public class RecordingService {
      * @return Список активных броней
      */
     @Transactional(readOnly = true)
-    public List<RecordingReservedDTO> getAllActiveReserveByUserId(Integer userId) {
-        checkAccessRecording(userId);
+    public List<RecordingReservedDTO> getAllActiveReserveByUserId(Integer userId, Integer authUser) {
+        checkAccessRecording(userId, authUser);
         List<RecordingReservedDTO> recordingReservedDTOS = recordingRepository.findAllByUser_IdAndReservedIsTrueAndCompletedIsFalse(userId)
                 .stream()
                 .map(recording -> {
@@ -254,8 +242,8 @@ public class RecordingService {
      * @return Список выполненных записей
      */
     @Transactional(readOnly = true)
-    public List<RecordingCompletedDTO> getAllCompletedRecordingByUserId(Integer userId) {
-        checkAccessRecording(userId);
+    public List<RecordingCompletedDTO> getAllCompletedRecordingByUserId(Integer userId, Integer authUserId) {
+        checkAccessRecording(userId, authUserId);
         List<RecordingCompletedDTO> recordingCompletedDTOS = recordingRepository.findAllByUser_IdAndCompletedIsTrue(userId).stream()
                 .map(r -> modelMapper.map(r, RecordingCompletedDTO.class))
                 .toList();
@@ -271,9 +259,9 @@ public class RecordingService {
      * @return Список записей.
      */
     @Transactional(readOnly = true)
-    public List<RecordingDTO> getAllRecordingsByRangeAndIdBox(RangeDataTimeDTO rangeDTDTO, Integer boxId) {
+    public List<RecordingDTO> getAllRecordingsByRangeAndIdBox(RangeDataTimeDTO rangeDTDTO, Integer boxId, Integer operatorId) {
         Box box = boxService.getBoxById(boxId);
-        boxService.checkAccessOperator(box);
+        boxService.checkAccessOperator(box, operatorId);
         List<RecordingDTO> recordingDTOS
                 = getRecordingDTOS(recordingRepository.findByBoxAndStartBetween(box, rangeDTDTO.getStart(), rangeDTDTO.getFinish()));
         log.info("Получен список всех записей бокса с id {}", boxId
@@ -301,17 +289,6 @@ public class RecordingService {
     }
 
     /**
-     * Возвращает неудаленную и невыполненную запись по ее идентификатору.
-     *
-     * @param id Идентификатор записи
-     * @return Запись
-     */
-    public Recording getRecordingByIdNotRemovedAndNotCompleted(Integer id) {
-        return recordingRepository.findByIdAndRemovedIsFalseAndCompletedIsFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
-    }
-
-    /**
      * Возвращается список всех неотмененных записей пользователя
      *
      * @param user Пользователь
@@ -320,6 +297,18 @@ public class RecordingService {
     public List<Recording> getAllRecordingsUser(User user) {
         return recordingRepository.findAllByUserAndRemovedIsFalse(user);
     }
+
+    /**
+     * Возвращает неудаленную и невыполненную запись по ее идентификатору.
+     *
+     * @param id Идентификатор записи
+     * @return Запись
+     */
+    private Recording getRecordingByIdNotRemovedAndNotCompleted(Integer id) {
+        return recordingRepository.findByIdAndRemovedIsFalseAndCompletedIsFalse(id)
+                .orElseThrow(() -> new EntityNotFoundException(RecordingService.class, id));
+    }
+
 
     private RecordingInBox getBoxRecord(Set<CarWashService> services, RecordingCreateDTO recordingDTO, Integer id, Action action) {
         //Получаем базовое время выполнения всех услуг в записи
@@ -382,12 +371,11 @@ public class RecordingService {
      *
      * @param userId Идентификатор пользователя
      */
-    private void checkAccessRecording(Integer userId) {
-        UserDetailsCustom userDetailsCustom = jwtAuthenticationFilter.getAuthUser();
-        Integer idUserCustom = userDetailsCustom.getId();
-        RolesUser roleUserCustom = userDetailsCustom.getRolesUser();
-        if ((RolesUser.ROLE_OPERATOR.equals(roleUserCustom) || RolesUser.ROLE_USER.equals(roleUserCustom))
-                && !userId.equals(idUserCustom)) {
+    private void checkAccessRecording(Integer userId, Integer authUserId) {
+        User authUser = userService.getUserById(authUserId);
+        RolesUser authRoleUser = authUser.getRole().getRolesUser();
+        if ((RolesUser.ROLE_OPERATOR.equals(authRoleUser) || RolesUser.ROLE_USER.equals(authRoleUser))
+                && !userId.equals(authUserId)) {
             throw new ForbiddenAccessException(userId);
         } else {
             userService.checkUserById(userId);
@@ -399,23 +387,23 @@ public class RecordingService {
      *
      * @param recording запись
      */
-    private void checkAccessRecording(Recording recording) {
-        UserDetailsCustom userDetailsCustom = jwtAuthenticationFilter.getAuthUser();
-        switch (userDetailsCustom.getRolesUser()) {
+    private void checkAccessRecording(Recording recording, Integer authUserId) {
+        User authUser = userService.getUserById(authUserId);
+        switch (authUser.getRole().getRolesUser()) {
             case ROLE_USER -> {
-                if (!userDetailsCustom.getId().equals(recording.getUser().getId())) {
-                    throw new ForbiddenAccessException(userDetailsCustom.getId());
+                if (!authUser.getId().equals(recording.getUser().getId())) {
+                    throw new ForbiddenAccessException(authUser.getId());
                 }
             }
             case ROLE_OPERATOR -> {
-                if (!userDetailsCustom.getId().equals(recording.getUser().getId())
-                        || !userDetailsCustom.getId().equals(recording.getBox().getUser().getId())) {
-                    throw new ForbiddenAccessException(userDetailsCustom.getId());
+                if (!authUser.getId().equals(recording.getUser().getId())
+                        || !authUser.getId().equals(recording.getBox().getUser().getId())) {
+                    throw new ForbiddenAccessException(authUser.getId());
                 }
             }
         }
         if (!LocalDateTime.now().isBefore(recording.getStart())) {
-            throw new ForbiddenAccessException(userDetailsCustom.getId());
+            throw new ForbiddenAccessException(authUser.getId());
         }
     }
 }

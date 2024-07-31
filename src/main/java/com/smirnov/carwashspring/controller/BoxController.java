@@ -10,12 +10,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,9 +49,11 @@ public class BoxController {
      */
     @GetMapping("/{id}/recordings")
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
-    public List<RecordingDTO> getRecordingsById(@PathVariable("id") Integer id) {
-        log.info("GET: /boxes/recordings/{}", id);
-        return boxService.getAllRecordingById(id);
+    @PreAuthorize("authentication.principal.id == #operatorId")
+    public List<RecordingDTO> getRecordingsById(@PathVariable("id") Integer id,
+                                                @RequestParam("operatorId") Integer operatorId) {
+        log.info("GET: /boxes/recordings/{}?operatorId={}", id, operatorId);
+        return boxService.getAllRecordingById(id, operatorId);
     }
 
     /**
@@ -60,12 +64,14 @@ public class BoxController {
      * @param boxId            Идентификатор бокса
      * @return Список записей за диапазон даты, времени.
      */
-    @GetMapping("{id}/by-range-date-time/")
+    @GetMapping("{id}/by-range-date-time")
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
+    @PreAuthorize("authentication.principal.id == #operatorId")
     public List<RecordingDTO> getAllRecordingsByDateTimeRangeAndBoxId(@RequestBody @Valid RangeDataTimeDTO rangeDataTimeDTO,
-                                                                      @PathVariable("id") Integer boxId) {
-        log.info("GET: /boxes/recordings/{}/by-range-date-time/", boxId);
-        return recordingService.getAllRecordingsByRangeAndIdBox(rangeDataTimeDTO, boxId);
+                                                                      @PathVariable("id") Integer boxId,
+                                                                      @RequestParam("operatorId") Integer operatorId) {
+        log.info("GET: /boxes/recordings/{}/by-range-date-time?operatorId={}", boxId, operatorId);
+        return recordingService.getAllRecordingsByRangeAndIdBox(rangeDataTimeDTO, boxId, operatorId);
     }
 
     /**
@@ -85,7 +91,7 @@ public class BoxController {
     @PutMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Secured("ROLE_ADMIN")
-    public void updateBox(Integer id, @RequestBody @Valid BoxCreateDTO boxCreateDto){
+    public void updateBox(Integer id, @RequestBody @Valid BoxCreateDTO boxCreateDto) {
         log.info("POST: /boxes/{}", id);
         boxService.updateBox(id, boxCreateDto);
     }

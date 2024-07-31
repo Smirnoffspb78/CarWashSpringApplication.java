@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -77,8 +79,10 @@ public class RecordingController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_USER"})
-    public Integer createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO) {
-        log.info("POST: /recordings");
+    @PreAuthorize("authentication.principal.id == #userId")
+    public Integer createRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO,
+                                   @RequestParam(name = "userId") Integer userId) {
+        log.info("POST: /recordings?userId={}", userId);
         return recordingService.createRecordingByIdUser(recordingDTO);
     }
 
@@ -92,10 +96,13 @@ public class RecordingController {
     @PutMapping("/{id}/update")
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_USER"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("authentication.principal.id == #userId")
     public void updateRecording(@RequestBody @Valid RecordingCreateDTO recordingDTO,
-                                @PathVariable(name = "id") Integer id) {
-        log.info("PUT: /recordings/update");
-        recordingService.updateRecording(id, recordingDTO);
+                                @PathVariable(name = "id") Integer id,
+                                @RequestParam(name = "userId") Integer userId
+    ) {
+        log.info("PUT: /recordings/update?userId={}", userId);
+        recordingService.updateRecording(id, recordingDTO, userId);
     }
 
     /**
@@ -109,10 +116,11 @@ public class RecordingController {
      */
     @PutMapping("/{id}/cancellation")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
-    public void cancellationRecording(@PathVariable("id") Integer id) {
-        log.info("PUT: /recordings/{}/cancellation", id);
-        recordingService.cancellationReserveById(id);
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR, ROLE_USER"})
+    @PreAuthorize("authentication.principal.id == #userId")
+    public void cancellationRecording(@PathVariable("id") Integer id, @RequestParam("userId") Integer userId) {
+        log.info("PUT: /recordings/{}/cancellation?userId={}", id, userId);
+        recordingService.cancellationReserveById(id, userId);
     }
 
     /**
@@ -127,8 +135,9 @@ public class RecordingController {
     @PutMapping("/{id}/approve")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_USER"})
-    public void approveRecording(@PathVariable(name = "id") Integer id) {
-        log.info("POST: /recordings/{}/approve", id);
+    @PreAuthorize("authentication.principal.id == #userId")
+    public void approveRecording(@PathVariable(name = "id") Integer id, @RequestParam(name = "userId") Integer userId) {
+        log.info("POST: /recordings/{}/approve?userId={}", id, userId);
         recordingService.approve(id);
     }
 
@@ -144,9 +153,11 @@ public class RecordingController {
     @PutMapping("/{id}/arrive")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_USER"})
-    public void arriveRecording(@PathVariable(name = "id") Integer id){
-        log.info("POST: /recordings/{}/arrive", id);
-        recordingService.arrive(id);
+    @PreAuthorize("authentication.principal.id == #userId")
+    public void arriveRecording(@PathVariable(name = "id") Integer id,
+                                @RequestParam(name = "userId") Integer userId) {
+        log.info("POST: /recordings/{}/arrive?userId={}", id, userId);
+        recordingService.arrive(id, userId);
     }
 
     /**
@@ -160,8 +171,9 @@ public class RecordingController {
     @PutMapping("/{id}/completed")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Secured({"ROLE_ADMIN", "ROLE_OPERATOR"})
-    public void updateRecordCompleted(@PathVariable(name = "id") Integer id) {
-        log.info("PUT: /recordings/{}/completed/", id);
-        recordingService.updateCompleteById(id);
+    @PreAuthorize("authentication.principal.id == #operatorId")
+    public void updateRecordCompleted(@PathVariable(name = "id") Integer id, @RequestParam(name = "operatorId") Integer operatorId) {
+        log.info("PUT: /recordings/{}/completed?operatorId={}", id, operatorId);
+        recordingService.updateCompleteById(id, operatorId);
     }
 }

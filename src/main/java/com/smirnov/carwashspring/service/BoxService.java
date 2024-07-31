@@ -39,14 +39,10 @@ public class BoxService {
 
     private final ModelMapper modelMapper;
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    public BoxService(BoxRepository boxRepository, @Lazy RecordingService recordingService, ModelMapper modelMapper,
-                      JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public BoxService(BoxRepository boxRepository, @Lazy RecordingService recordingService, ModelMapper modelMapper) {
         this.boxRepository = boxRepository;
         this.recordingService = recordingService;
         this.modelMapper = modelMapper;
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     /**
@@ -64,8 +60,8 @@ public class BoxService {
     /**
      * Обновляет информацию по боксу
      */
-    public void updateBox(Integer id, BoxCreateDTO boxCreateDTO){
-        if (!boxRepository.existsById(id)){
+    public void updateBox(Integer id, BoxCreateDTO boxCreateDTO) {
+        if (!boxRepository.existsById(id)) {
             throw new EntityNotFoundException(Box.class, id);
         }
         Box box = modelMapper.map(boxCreateDTO, Box.class);
@@ -81,9 +77,9 @@ public class BoxService {
      * @return Список записей.
      */
     @Transactional(readOnly = true)
-    public List<RecordingDTO> getAllRecordingById(Integer id) {
+    public List<RecordingDTO> getAllRecordingById(Integer id, Integer operatorId) {
         Box box = getBoxById(id);
-        checkAccessOperator(box);
+        checkAccessOperator(box, operatorId);
         List<RecordingDTO> recordingDTOS = recordingService.getRecordingDTOS(box.getRecordings());
         log.info("{}. Получен список всех записей по идентификатору бокса", HttpStatus.OK);
         return recordingDTOS;
@@ -115,10 +111,9 @@ public class BoxService {
      *
      * @param box Бокс
      */
-    public void checkAccessOperator(Box box) {
-        UserDetailsCustom userDetails = jwtAuthenticationFilter.getAuthUser();
-        if (userDetails.getRolesUser().equals(RolesUser.ROLE_OPERATOR) && (!userDetails.getId().equals(box.getUser().getId()))) {
-            throw new ForbiddenAccessException(userDetails.getId());
+    public void checkAccessOperator(Box box, Integer operatorId) {
+        if (box.getUser().getRole().getRolesUser().equals(RolesUser.ROLE_OPERATOR) && (!operatorId.equals(box.getUser().getId()))) {
+            throw new ForbiddenAccessException(operatorId);
         }
     }
 }

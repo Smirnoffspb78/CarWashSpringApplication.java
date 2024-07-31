@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,24 +37,26 @@ public class UserController {
      * @param userId Идентификатор пользователя
      * @return Список забронированных записей
      */
-    @GetMapping("/{id}/records-reserved")
-    @Secured({"ROLE_ADMIN","ROLE_USER"})
-    public List<RecordingReservedDTO> getAllActiveReserveByUserId(@PathVariable("id") Integer userId) {
+    @GetMapping("/{id}/records-reserved/{authUserId}")
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR","ROLE_USER"})
+    @PreAuthorize("authentication.principal.id == #authUserId")
+    public List<RecordingReservedDTO> getAllActiveReserveByUserId(@PathVariable("id") Integer userId, @PathVariable("authUserId") Integer authUserId) {
         log.info("GET: /users/{}/records-reserved", userId);
-        return recordingService.getAllActiveReserveByUserId(userId);
+        return recordingService.getAllActiveReserveByUserId(userId, authUserId);
     }
 
     /**
      * Возвращает все выполненные записи по идентификатору пользователя.
-     * Права доступа: ADMIN, OPERATOR с данным id USER с данным id
+     * Права доступа: ADMIN, OPERATOR с данным id, USER с данным id
      * @param userId Идентификатор пользователя
      * @return Список выполненных записей
      */
-    @GetMapping("/{id}/records-completed")
-    @Secured({"ROLE_ADMIN","ROLE_USER"})
-    public List<RecordingCompletedDTO> getAllCompletedByUserId(@PathVariable("id") Integer userId) {
+    @GetMapping("/{id}/records-completed/{authUserId}")
+    @Secured({"ROLE_ADMIN", "ROLE_OPERATOR","ROLE_USER"})
+    @PreAuthorize("authentication.principal.id == #authUserId")
+    public List<RecordingCompletedDTO> getAllCompletedByUserId(@PathVariable("id") Integer userId, @PathVariable("authUserId") Integer authUserId) {
         log.info("GET: /users/{userId}/records-completed");
-        return recordingService.getAllCompletedRecordingByUserId(userId);
+        return recordingService.getAllCompletedRecordingByUserId(userId, authUserId);
     }
 
     /**
@@ -78,8 +81,9 @@ public class UserController {
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Secured("ROLE_USER")
-    public void deleteUser(@PathVariable(name = "id") Integer  id) {
-        log.info("PUT: /users/{}", id);
-        userService.deleteUser(id);
+    @PreAuthorize("authentication.principal.id == #userId")
+    public void deleteUser(@PathVariable(name = "id") Integer  id, @RequestParam(name = "userId") Integer  userId) {
+        log.info("PUT: /users/{}?userId={}", id, userId);
+        userService.deleteUser(id, userId);
     }
 }

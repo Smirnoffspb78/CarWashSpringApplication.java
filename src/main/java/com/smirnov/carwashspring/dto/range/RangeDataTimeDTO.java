@@ -24,9 +24,5 @@ public class RangeDataTimeDTO implements SpecifyRange {
      */
     private LocalDateTime finish;
 
-    @Override
-    public int compare(Temporal o1, Temporal o2) {
 
-        return 0;
-    }
 }

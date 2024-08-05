@@ -1,5 +1,6 @@
 package com.smirnov.carwashspring.controller;
 
+import com.smirnov.carwashspring.exception.DownloadFileException;
 import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.exception.ForbiddenAccessException;
 import com.smirnov.carwashspring.exception.JWTValidException;
@@ -29,7 +30,7 @@ public class ExceptionHandlerAdvice {
     }
 
     @ResponseBody
-    @ExceptionHandler({LoginException.class, RecordingCreateException.class, IllegalArgumentException.class, JWTValidException.class})
+    @ExceptionHandler({LoginException.class, RecordingCreateException.class, IllegalArgumentException.class, JWTValidException.class, DownloadFileException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String loginException(LoginException e) {
         log.error("{}. ", HttpStatus.BAD_REQUEST, e);

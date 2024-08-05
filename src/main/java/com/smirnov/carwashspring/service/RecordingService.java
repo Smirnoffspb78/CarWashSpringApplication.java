@@ -1,6 +1,7 @@
 package com.smirnov.carwashspring.service;
 
 import com.smirnov.carwashspring.dto.range.RangeDataTimeDTO;
+import com.smirnov.carwashspring.dto.request.create.MessageRecording;
 import com.smirnov.carwashspring.dto.request.create.RecordingCreateDTO;
 import com.smirnov.carwashspring.dto.response.get.RecordingCompletedDTO;
 import com.smirnov.carwashspring.dto.response.get.RecordingDTO;
@@ -13,6 +14,7 @@ import com.smirnov.carwashspring.entity.users.User;
 import com.smirnov.carwashspring.exception.EntityNotFoundException;
 import com.smirnov.carwashspring.exception.ForbiddenAccessException;
 import com.smirnov.carwashspring.exception.RecordingCreateException;
+import com.smirnov.carwashspring.rabbit.RabbitMQProducerService;
 import com.smirnov.carwashspring.repository.RecordingRepository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -67,6 +69,8 @@ public class RecordingService {
      * Сервисный слой услуг.
      */
     private final CarWashServiceService carWashServiceService;
+
+    private final RabbitMQProducerService rabbitMQProducerService;
 
     private final ModelMapper modelMapper;
 
@@ -180,6 +184,7 @@ public class RecordingService {
         recording.setServices(services);
         Integer recordingId = recordingRepository.save(recording).getId();
         log.info("{}. Запись с id {} создана", HttpStatus.CREATED, recordingId);
+        rabbitMQProducerService.sendMessage(recording.getUser().getId(), recording.getUser().getEmail()); //;(new MessageRecording(recording.getUser().getId(), recording.getUser().getEmail()));
         return recordingId;
     }
 

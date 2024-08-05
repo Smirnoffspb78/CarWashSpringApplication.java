@@ -36,6 +36,14 @@ security:
   jwtSecret: 841D8A6C80CBA4FCAD32D5367C18C53B
 
 
-
+#Свойства RabbitConfiguration
+rabbitconfigure:
+  username: admin
+  password: admin
+  virtualhost: cpp
+  queue: carWashQueue
+  exchange: carWashExchange
+  routingKey: carWashRoutingKey
+  host: localhost
 
 

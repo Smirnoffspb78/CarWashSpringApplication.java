@@ -42,3 +42,6 @@ databaseChangeLog:
   #Добавление записей связей запись-услуги
   - includeAll:
       path: db/changelog/changeset/1_13/
+  #Обновление email-ов
+  - includeAll:
+      path: db/changelog/changeset/1_14/

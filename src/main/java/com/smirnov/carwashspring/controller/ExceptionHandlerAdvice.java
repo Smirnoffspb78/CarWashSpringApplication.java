@@ -24,16 +24,14 @@ public class ExceptionHandlerAdvice {
     @ResponseBody
     @ExceptionHandler({EntityNotFoundException.class, LoginNotFoundException.class, UsernameNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String entityException(EntityNotFoundException e) {
-        log.error("{}. ", HttpStatus.NOT_FOUND, e);
+    public String entityException(RuntimeException e) {
         return responseServer(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     @ResponseBody
     @ExceptionHandler({LoginException.class, RecordingCreateException.class, IllegalArgumentException.class, JWTValidException.class, DownloadFileException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String loginException(LoginException e) {
-        log.error("{}. ", HttpStatus.BAD_REQUEST, e);
+    public String badRequestException(RuntimeException e) {
         return responseServer(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
@@ -41,7 +39,6 @@ public class ExceptionHandlerAdvice {
     @ExceptionHandler(ForbiddenAccessException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public String forbiddenException(ForbiddenAccessException e) {
-        log.error("{}. ", HttpStatus.FORBIDDEN, e);
         return responseServer(HttpStatus.FORBIDDEN, e.getMessage());
     }
 
@@ -53,11 +50,11 @@ public class ExceptionHandlerAdvice {
         e.getAllErrors().stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .forEach(str -> stringBuilder.append("\n").append(str));
-        log.error("{}. {}", HttpStatus.BAD_REQUEST, stringBuilder);
         return responseServer(HttpStatus.BAD_REQUEST, stringBuilder.toString());
     }
 
     private String responseServer(HttpStatus httpStatus, String massage) {
+        log.error("{}. {}", httpStatus, massage);
         return "%s %n%s".formatted(httpStatus, massage);
     }
 }

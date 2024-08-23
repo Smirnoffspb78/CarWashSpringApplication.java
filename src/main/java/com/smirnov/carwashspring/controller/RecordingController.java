@@ -31,7 +31,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/recordings")
 @Slf4j
-@Validated
 public class RecordingController {
     /**
      * Сервисный слой записи.

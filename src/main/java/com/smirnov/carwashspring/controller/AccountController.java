@@ -26,7 +26,6 @@ import javax.security.auth.login.AccountNotFoundException;
 @RequestMapping("/account")
 @RequiredArgsConstructor
 @Slf4j
-@Validated
 public class AccountController {
 
     /**

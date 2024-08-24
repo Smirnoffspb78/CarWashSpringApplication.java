@@ -53,8 +53,8 @@ public class ExceptionHandlerAdvice {
         return responseServer(HttpStatus.BAD_REQUEST, stringBuilder.toString());
     }
 
-    private String responseServer(HttpStatus httpStatus, String massage) {
-        log.error("{}. {}", httpStatus, massage);
-        return "%s %n%s".formatted(httpStatus, massage);
+    private String responseServer(HttpStatus httpStatus, String message) {
+        log.error("{}. {}", httpStatus, message);
+        return "%s %n%s".formatted(httpStatus, message);
     }
 }
